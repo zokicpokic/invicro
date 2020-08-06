@@ -15,7 +15,7 @@ const routes = [
 
     },
     {
-        path: '/:projectId/:imageId/:studyId',
+        path: '/:projectId/:studyId/:serieId',
         component: GlobalDashboard // Alternative: component: require("./components/GlobalDashboard.vue").default
     }
 ];

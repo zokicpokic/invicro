@@ -3,13 +3,13 @@ import axios from 'axios';
 
 export const dimensions = {
     // TODO: 1/1/stdId <--- sta je 1/1
-    get: async (projectId, serieId, studyId) => {
+    get: async (projectId, studyId, serieId) => {
         return axios
             .get(
                 constants.API_CORE_HOST + '/api/mld/dimensions/' +
                 projectId + '/' +
-                serieId + '/' +
-                studyId + '/')
+                studyId + '/' +
+                serieId + '/')
             .then(response => {
                 return response.data;
             });

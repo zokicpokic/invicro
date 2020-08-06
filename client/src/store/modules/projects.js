@@ -27,23 +27,23 @@ const getters = {
 };
 
 const mutations = {
-    [m.PROJECTS_SET_ACTIVE] (state, { projectId, studyId, serieId }) {
+    [m.PROJECTS_SET_ACTIVE](state, { projectId, studyId, serieId }) {
         state.activeProjectId = projectId;
         state.activeStudyId = studyId;
         state.activeSerieId = serieId;
     },
-    [m.PROJECTS_FETCHING] (state) {
+    [m.PROJECTS_FETCHING](state) {
         state.fetching = true;
     },
-    [m.PROJECTS_SET_ANNOTATION] (state, annotation) {
+    [m.PROJECTS_SET_ANNOTATION](state, annotation) {
         state.fetching = false;
         Vue.set(state, 'annotation', annotation);
     },
-    [m.PROJECTS_SET_ANNOTATION_FAILED] (state) {
+    [m.PROJECTS_SET_ANNOTATION_FAILED](state) {
         state.annotation = undefined;
         state.fetching = false;
     },
-    [m.PROJECTS_SET_DIMENSIONS] (state, { width, height }) {
+    [m.PROJECTS_SET_DIMENSIONS](state, { width, height }) {
         state.imageWidth = width;
         state.imageHeight = height;
     }
@@ -53,7 +53,7 @@ const actions = {
     [a.PROJECTS_FETCH_ANNOTATION]: async ({ state, commit }) => {
         commit(m.PROJECTS_FETCHING);
 
-        return backend.annotations.get(state.activeProjectId, state.activeSerieId, state.activeStudyId)
+        return backend.annotations.get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
             .then(res => {
                 commit(m.PROJECTS_SET_ANNOTATION, res);
                 return res;
@@ -77,7 +77,7 @@ const actions = {
     },
     [a.PROJECTS_FETCH_DIMENSIONS]: async ({ state, commit }) => {
         return backend.dimensions
-            .post(state.activeProjectId, state.activeSerieId, state.activeStudyId)
+            .get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
             .then(res => {
                 commit(m.PROJECTS_SET_DIMENSIONS, { width: res.width, height: res.height });
                 return res;
