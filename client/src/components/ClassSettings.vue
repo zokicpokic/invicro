@@ -79,6 +79,7 @@ export default {
                 this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: cl.name });
             }
         },
+        // TODO: fix onVisibilityChange...
         onVisibilityChange: function (item) {
             this.$store.commit(m.PROJECTS_SET_CLASS_VISIBILITY, {
                 name: item.name,
