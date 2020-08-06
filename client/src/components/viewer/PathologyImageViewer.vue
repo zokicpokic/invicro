@@ -99,12 +99,10 @@ export default {
           self.$route.params.serieId.length - 4
         ) + ".mld";
 
-      const serdId = self.$route.params.serieId;
+      const serId = self.$route.params.serieId;
       var imgWidth, imgHeight;
       axios
-        .get(
-          constants.API_CORE_HOST + "/api/mld/dimensions/1/1/" + serdId + "/"
-        )
+        .get(constants.API_CORE_HOST + "/api/mld/dimensions/1/1/" + serId + "/")
         .then((response) => {
           console.log(response);
           imgWidth = response.data.width;
@@ -144,7 +142,7 @@ export default {
               url:
                 constants.API_CORE_HOST +
                 "/api/region/" +
-                serdId +
+                serId +
                 "/{z}/{x}/{y}",
               wrapX: false,
             }),
@@ -159,7 +157,7 @@ export default {
                 "/api/mld/1/1/" +
                 mldId +
                 "/" +
-                serdId +
+                serId +
                 "/";
               axios.get(url).then((response) => {
                 if (response.status == 200) {
@@ -257,10 +255,7 @@ export default {
             wrapX: false,
             loader: function () {
               var url =
-                constants.API_CORE_HOST +
-                "/api/annotations/1/1/" +
-                serdId +
-                "/";
+                constants.API_CORE_HOST + "/api/annotations/1/1/" + serId + "/";
               axios.get(url).then((response) => {
                 if (response.status == 200) {
                   var res = response.data;
@@ -332,7 +327,7 @@ export default {
             var geojsonStr = writer.writeFeatures(features);
             console.log(geojsonStr);
             var url =
-              constants.API_CORE_HOST + "/api/annotations/1/1/" + serdId + "/";
+              constants.API_CORE_HOST + "/api/annotations/1/1/" + serId + "/";
 
             axios
               .post(url, JSON.parse(geojsonStr))
