@@ -84,7 +84,9 @@ export default {
         onOk: function () {
             this.$store.commit(m.PROJECTS_ADD_CLASS, {
                 name: this.name,
-                strokecolor: this.color,
+                strokeColor: this.color,
+                fillColor: "#5A5A5A", // TODO: add real values from color picker
+                opacity: 0.5, // TODO: add real values
                 type: 'Polygon'
             });
             this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: this.name });

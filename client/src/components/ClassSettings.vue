@@ -7,19 +7,22 @@
       <v-card-text>
         <v-container>
           <v-row></v-row>
-          <span>Active class : class1</span>
+          <span>Active class : {{ activeClassName }}</span>
           <v-row class="flex-column">
             <v-list flat>
               <v-subheader>CLASSES</v-subheader>
-              <v-list-item-group v-model="item" color="primary">
-                <v-list-item v-for="(item, i) in classes" :key="i">
+              <v-list-item-group mandatory value="activeClassName" @change="onSelectionChange" color="primary">
+                <v-list-item v-for="(item) in classes" :key="item.name">
                   <v-list-item-content>
                     <v-list-item-title v-text="item.name"></v-list-item-title>
                   </v-list-item-content>
                   <v-list-item-icon >
-                    <v-icon large :color="item.strokecolor">mdi-album</v-icon>
+                    <v-icon large :color="item.strokeColor">mdi-album</v-icon>
                   </v-list-item-icon>
-                  <v-switch label="Show" color="primary" value="item.isVisible">Show</v-switch>
+                  <v-switch label="Show"
+                      color="primary">
+                      Show
+                  </v-switch>
                 </v-list-item>
               </v-list-item-group>
             </v-list>
@@ -36,6 +39,7 @@
 </template>
 
 <script>
+import * as m from '../store/mutation_types';
 import { mapGetters } from 'vuex';
 
 export default {
@@ -52,7 +56,8 @@ export default {
     computed: {
         ...mapGetters([
             'classes',
-            'activeClassName'
+            'activeClassName',
+            'activeClass'
             ]),
         show: {
             get() {
@@ -63,7 +68,23 @@ export default {
                     this.$emit("close");
                 }
             },
-        },
+        }
     },
+    methods: {
+        onSelectionChange: function (val) {
+            console.log(val);
+            const cl = this.classes[val];
+            console.log(cl.name);
+            if (cl) {
+                this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: cl.name });
+            }
+        },
+        onVisibilityChange: function (item) {
+            this.$store.commit(m.PROJECTS_SET_CLASS_VISIBILITY, {
+                name: item.name,
+                isVisible: !item.isVisible
+            });
+        }
+    }
 };
 </script>
