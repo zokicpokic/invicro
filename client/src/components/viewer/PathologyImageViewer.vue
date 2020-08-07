@@ -53,6 +53,7 @@ export default {
       "activeProjectId",
       "activeStudyId",
       "activeSerieId",
+      "annotation"
     ]),
   },
   watch: {

@@ -21,8 +21,24 @@
       <v-btn v-on:click="showClasses" icon>
         <v-icon>mdi-set-right</v-icon>
       </v-btn>
+      <p>
+        {{ activeClassName }}
+      </p>
       <!--<v-switch label="Display MLD File" color="primary" value="red" hide-details></v-switch>-->
       <v-spacer></v-spacer>
+    </v-toolbar>
+
+    <v-toolbar dense :dark="false">
+        <v-toolbar-title></v-toolbar-title>
+        <v-btn-toggle
+            v-model="selectedGeometry"
+            mandatory
+            >
+            <v-btn v-for="item in geometries" :key="item.name">
+                <v-icon>{{ item.icon }}</v-icon>
+            </v-btn>
+        </v-btn-toggle>
+        <v-spacer></v-spacer>
     </v-toolbar>
     <!--</v-card>-->
     <v-main>
@@ -39,6 +55,8 @@ import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
 import NewClassSettings from "@/components/NewClassSettings";
+import { mapGetters } from 'vuex';
+import * as m from '../store/mutation_types';
 
 export default {
   name: "global-dashboard",
@@ -46,8 +64,47 @@ export default {
     return {
       showAnnotationSettings: false,
       showClassSettings: false,
-      showNewClassSettings: false,
+        showNewClassSettings: false,
+        geometries: [
+            {
+                name: 'Polygon',
+                icon: 'mdi-vector-polygon'
+            },
+            {
+                name: 'Ellipse',
+                icon: 'mdi-vector-ellipse'
+            },
+            {
+                name: 'Circle',
+                icon: 'mdi-vector-circle'
+            },
+            {
+                name: 'Rectangle',
+                icon: 'mdi-vector-rectangle'
+            },
+            {
+                name: 'Square',
+                icon: 'mdi-vector-square'
+            }
+        ],
     };
+  },
+  computed: {
+      ...mapGetters([
+          'activeGeometry',
+          'activeClassName'
+      ]),
+      selectedGeometry: {
+          get: function () {
+              return this.geometries.map(x => x.name).indexOf(this.activeGeometry);
+          },
+          set: function (val) {
+              const geometry = this.geometries[val].name;
+              this.$store.commit(m.PROJECTS_SET_ACTIVE_GEOMETRY, {
+                  geometry
+              });
+          }
+      }
   },
   components: {
     PathologyImageViewer,
