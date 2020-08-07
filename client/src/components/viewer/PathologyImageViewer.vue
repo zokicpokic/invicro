@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="mapOL"></div>
-    <form class="form-inline">
+    <!--<form class="form-inline">
       <label>Geometry type &nbsp;</label>
       <select id="type">
         <option value="Polygon">Polygon</option>
@@ -14,7 +14,7 @@
       <br />
       <input type="checkbox" id="displayMLDId" @change="check($event)" checked />
       <label for="displayMLDId">Display MLD Overlay</label>
-    </form>
+    </form>-->
   </div>
 </template>
 
@@ -53,7 +53,7 @@ export default {
       "activeProjectId",
       "activeStudyId",
       "activeSerieId",
-      "annotation"
+      "annotation",
     ]),
   },
   watch: {
@@ -305,7 +305,8 @@ export default {
           self.dataMap = map;
 
           var modify = new Modify({ source: sourceAnnotations });
-          map.addInteraction(modify);
+          console.log(modify);
+          //map.addInteraction(modify);
           var draw, snap; // global so we can remove them later
           var typeSelect = document.getElementById("type");
 
