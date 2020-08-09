@@ -54,6 +54,7 @@ export default {
       "activeStudyId",
       "activeSerieId",
       "annotation",
+      "activeClass",
     ]),
   },
   watch: {
@@ -73,7 +74,7 @@ export default {
     featureColorChange(e) {
       this.featureColor = e.target.value;
     },
-    loadProject: function () {
+    loadProject: async function () {
       const projectId = this.$route.params.projectId;
       const serieId = this.$route.params.serieId;
 
@@ -85,7 +86,7 @@ export default {
       var f = this.$store.dispatch(a.PROJECTS_FETCH_DIMENSIONS);
       var f2 = this.$store.dispatch(a.PROJECTS_FETCH_ANNOTATION);
 
-      Promise.all([f, f2])
+      await Promise.all([f, f2])
         .then(() => {})
         .catch((e) => {
           console.log("error fetcing data");
@@ -276,20 +277,21 @@ export default {
             console.log(feature);
             //now you can use any property of your feature to identify the different colors
             //I am using the ID property of your data just to demonstrate
-            var color = feature.get("strokeColor")
-              ? feature.get("strokeColor")
-              : self.featureColor;
+            var colorfinal = "rgba(" + self.activeClass.fillColor + ",0.3)";
+            if (self.activeClass) {
+              var retStyle = new Style({
+                stroke: new Stroke({
+                  color: self.activeClass.strokeColor,
+                  width: 2,
+                }),
+                fill: new Fill({
+                  color: colorfinal,
+                }),
+              });
+              return retStyle;
+            }
 
-            var retStyle = new Style({
-              stroke: new Stroke({
-                color: color,
-                width: 2,
-              }),
-              fill: new Fill({
-                color: "rgba(255, 255, 255, 0.2)",
-              }),
-            });
-            return retStyle;
+            return undefined;
           };
           var vectorAnnotations = new VectorLayer({
             name: "Vector",
@@ -306,14 +308,14 @@ export default {
 
           var modify = new Modify({ source: sourceAnnotations });
           console.log(modify);
-          //map.addInteraction(modify);
+          map.addInteraction(modify);
           var draw, snap; // global so we can remove them later
-          var typeSelect = document.getElementById("type");
+          //var typeSelect = document.getElementById("type");
 
           function addInteractions() {
             draw = new Draw({
               source: sourceAnnotations,
-              type: typeSelect.value,
+              type: "Polygon",
             });
             draw.on("drawend", drawEnd);
             map.addInteraction(draw);
@@ -322,8 +324,11 @@ export default {
           }
 
           function drawEnd(e) {
-            var writer = new GeoJSON();
-            e.feature.set("strokeColor", self.featureColor);
+            self.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
+              feature: e.feature,
+            });
+            /*var writer = new GeoJSON();
+            e.feature.set("class", JSON.stringify(self.activeClass));
             var features = sourceAnnotations.getFeatures();
             features = features.concat(e.feature);
             var geojsonStr = writer.writeFeatures(features);
@@ -333,14 +338,14 @@ export default {
 
             axios
               .post(url, JSON.parse(geojsonStr))
-              .then((response) => console.log(response));
+              .then((response) => console.log(response));*/
           }
 
-          typeSelect.onchange = function () {
+          /*typeSelect.onchange = function () {
             map.removeInteraction(draw);
             map.removeInteraction(snap);
             addInteractions();
-          };
+          };*/
 
           addInteractions();
         });

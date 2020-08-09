@@ -55,7 +55,7 @@ const mutations = {
         state.imageWidth = width;
         state.imageHeight = height;
     },
-    [m.PROJECTS_ADD_CLASS] (state, {name, strokeColor, fillColor, opacity}) {
+    [m.PROJECTS_ADD_CLASS](state, { name, strokeColor, fillColor, opacity }) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -75,7 +75,7 @@ const mutations = {
             isVisible: true
         });
     },
-    [m.PROJECTS_SET_CLASS_VISIBILITY] (state, { name, isVisible }) {
+    [m.PROJECTS_SET_CLASS_VISIBILITY](state, { name, isVisible }) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -88,7 +88,7 @@ const mutations = {
         }
 
     },
-    [m.PROJECTS_SET_ACTIVE_CLASS] (state, {name}) {
+    [m.PROJECTS_SET_ACTIVE_CLASS](state, { name }) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -100,7 +100,7 @@ const mutations = {
             state.activeClassName = name;
         }
     },
-    [m.PROJECTS_DELETE_CLASS] (state, { name }) {
+    [m.PROJECTS_DELETE_CLASS](state, { name }) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -112,7 +112,7 @@ const mutations = {
             state.annotation.classes.splice(index, 1);
         }
     },
-    [m.PROJECTS_ADD_EMPTY_ANNOTATION] (state) {
+    [m.PROJECTS_ADD_EMPTY_ANNOTATION](state) {
         state.fetching = false;
         state.annotation = {
             features: [],
@@ -120,8 +120,13 @@ const mutations = {
             classes: []
         };
     },
-    [m.PROJECTS_SET_ACTIVE_GEOMETRY] (state, { geometry }) {
+    [m.PROJECTS_SET_ACTIVE_GEOMETRY](state, { geometry }) {
         state.activeGeometry = geometry;
+    },
+    [m.PROJECTS_ANNOTATION_ADD_FEATURE](state, { feature }) {
+        console.log(state);
+        console.log(feature);
+        //state.annotation.features
     }
 };
 
@@ -146,11 +151,11 @@ const actions = {
                 throw err;
             });
     },
-    [a.PROJECTS_POST_ANNOTATION]: async ({ state, commit }, { annotation }) => {
+    [a.PROJECTS_POST_ANNOTATION]: async ({ state, commit }, annotation) => {
         commit(m.PROJECTS_FETCHING);
 
         return backend.annotations
-            .post(state.activeProjectId, state.activeSerieId, state.activeStudyId, annotation)
+            .post(state.activeProjectId, state.activeStudyId, state.activeSerieId, annotation)
             .then(res => {
                 return res;
             })
