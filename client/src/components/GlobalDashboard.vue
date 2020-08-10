@@ -52,6 +52,7 @@ import ClassSettings from "@/components/ClassSettings";
 import NewClassSettings from "@/components/NewClassSettings";
 import { mapGetters } from "vuex";
 import * as m from "../store/mutation_types";
+import * as a from "../store/action_types";
 
 export default {
   name: "global-dashboard",
@@ -85,16 +86,27 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["activeGeometry", "activeClassName"]),
+    ...mapGetters(["annotation", "activeGeometry", "activeClassName"]),
     selectedGeometry: {
       get: function () {
         return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
       },
-      set: function (val) {
+      set: async function (val) {
         const geometry = this.geometries[val].name;
         this.$store.commit(m.PROJECTS_SET_ACTIVE_GEOMETRY, {
           geometry,
         });
+        var f = this.$store.dispatch(
+          a.PROJECTS_POST_ANNOTATION,
+          this.annotation
+        );
+
+        await Promise.all([f])
+          .then(() => {})
+          .catch((e) => {
+            console.log("error fetcing activeGeometry data");
+            console.log(e);
+          });
       },
     },
   },

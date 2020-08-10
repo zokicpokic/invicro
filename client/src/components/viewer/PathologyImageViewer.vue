@@ -30,7 +30,7 @@ import { Vector as VectorSource } from "ol/source";
 import GeoJSON from "ol/format/GeoJSON";
 import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
 import { bbox } from "ol/loadingstrategy";
-import { mapGetters } from "vuex";
+import { mapGetters, mapState } from "vuex";
 import * as m from "../../store/mutation_types";
 import * as a from "../../store/action_types";
 
@@ -42,10 +42,13 @@ export default {
   data: function () {
     return {
       dataMap: null,
+      dataDraw: null,
+      dataSnap: null,
       featureColor: "#00000",
     };
   },
   computed: {
+    ...mapState(["activeClass", "annotation", "activeClass"]),
     ...mapGetters([
       "imageWidth",
       "imageHeight",
@@ -55,13 +58,18 @@ export default {
       "activeSerieId",
       "annotation",
       "activeClass",
+      "activeGeometry",
     ]),
   },
   watch: {
     $route: function () {
       console.log("Route changed");
       this.loadProject();
-    },
+    } /*,
+    activeGeometry(newValue, oldValue) {
+      console.log(`Updating from ${oldValue} to ${newValue}`);
+      this.loadProject();
+    },*/,
   },
   mounted: function () {
     this.loadProject();
@@ -255,7 +263,7 @@ export default {
           var sourceAnnotations = new VectorSource({
             format: new GeoJSON(),
             wrapX: false,
-            loader: function () {
+            /*loader: function () {
               var url =
                 constants.API_CORE_HOST + "/api/annotations/1/1/" + serId + "/";
               axios.get(url).then((response) => {
@@ -269,15 +277,18 @@ export default {
                   );
                 }
               });
-            },
-            strategy: bbox,
+            }*/ strategy: bbox,
           });
+
+          sourceAnnotations.clear();
+          sourceAnnotations.addFeatures(
+            sourceAnnotations
+              .getFormat()
+              .readFeatures(JSON.stringify(self.annotation))
+          );
 
           var styleFunction = function (feature) {
             console.log(feature);
-            //now you can use any property of your feature to identify the different colors
-            //I am using the ID property of your data just to demonstrate
-            var colorfinal = "rgba(" + self.activeClass.fillColor + ",0.3)";
             if (self.activeClass) {
               var retStyle = new Style({
                 stroke: new Stroke({
@@ -285,7 +296,7 @@ export default {
                   width: 2,
                 }),
                 fill: new Fill({
-                  color: colorfinal,
+                  color: self.activeClass.fillColor,
                 }),
               });
               return retStyle;
@@ -315,18 +326,37 @@ export default {
           function addInteractions() {
             draw = new Draw({
               source: sourceAnnotations,
-              type: "Polygon",
+              type: self.activeGeometry ? self.activeGeometry : "Polygon",
             });
             draw.on("drawend", drawEnd);
             map.addInteraction(draw);
             snap = new Snap({ source: sourceAnnotations });
             map.addInteraction(snap);
+            self.dataDraw = draw;
+            self.dataSnap = snap;
           }
 
-          function drawEnd(e) {
+          async function drawEnd(e) {
+            var writer = new GeoJSON();
+            e.feature.set("class", self.activeClass.name);
+            var feature = writer.writeFeature(e.feature);
             self.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
-              feature: e.feature,
+              feature: JSON.parse(feature),
             });
+            var f = self.$store.dispatch(
+              a.PROJECTS_POST_ANNOTATION,
+              self.annotation
+            );
+
+            await Promise.all([f])
+              .then(() => {})
+              .catch((e) => {
+                console.log(
+                  "error fetcing PROJECTS_ANNOTATION_ADD_FEATURE data"
+                );
+                console.log(e);
+              });
+
             /*var writer = new GeoJSON();
             e.feature.set("class", JSON.stringify(self.activeClass));
             var features = sourceAnnotations.getFeatures();

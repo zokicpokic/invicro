@@ -46,6 +46,16 @@ const mutations = {
     [m.PROJECTS_SET_ANNOTATION](state, annotation) {
         state.fetching = false;
         Vue.set(state, 'annotation', annotation);
+        if (annotation != null && annotation.classes != null) {
+            var activeClassname = (annotation.activeClassName) ? annotation.activeClassName : annotation.classes[0].name;
+            if (activeClassname) {
+                Vue.set(state, 'activeClassName', activeClassname);
+            }
+            var activeGeometry = (annotation.activeGeometry) ? annotation.activeGeometry : "Polygon";
+            if (activeGeometry) {
+                Vue.set(state, 'activeGeometry', activeGeometry);
+            }
+        }
     },
     [m.PROJECTS_SET_ANNOTATION_FAILED](state) {
         state.annotation = undefined;
@@ -98,6 +108,7 @@ const mutations = {
         if (index >= 0) {
             // class exists. We can set it as active
             state.activeClassName = name;
+            state.annotation.activeClassName = name;
         }
     },
     [m.PROJECTS_DELETE_CLASS](state, { name }) {
@@ -122,11 +133,12 @@ const mutations = {
     },
     [m.PROJECTS_SET_ACTIVE_GEOMETRY](state, { geometry }) {
         state.activeGeometry = geometry;
+        state.annotation.activeGeometry = geometry;
     },
     [m.PROJECTS_ANNOTATION_ADD_FEATURE](state, { feature }) {
         console.log(state);
         console.log(feature);
-        //state.annotation.features
+        state.annotation.features.push(feature);
     }
 };
 
