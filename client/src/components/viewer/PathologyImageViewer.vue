@@ -48,7 +48,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["activeClass", "annotation", "activeClass"]),
+    ...mapState(["activeClass", "annotation", "activeGeometry"]),
     ...mapGetters([
       "imageWidth",
       "imageHeight",
