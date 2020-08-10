@@ -96,10 +96,9 @@ export default {
         this.$store.commit(m.PROJECTS_SET_ACTIVE_GEOMETRY, {
           geometry,
         });
-        var f = this.$store.dispatch(
-          a.PROJECTS_POST_ANNOTATION,
-          this.annotation
-        );
+        var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+          annotation: this.annotation,
+        });
 
         await Promise.all([f])
           .then(() => {})

@@ -343,10 +343,9 @@ export default {
             self.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
               feature: JSON.parse(feature),
             });
-            var f = self.$store.dispatch(
-              a.PROJECTS_POST_ANNOTATION,
-              self.annotation
-            );
+            var f = self.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+              annotation: self.annotation,
+            });
 
             await Promise.all([f])
               .then(() => {})

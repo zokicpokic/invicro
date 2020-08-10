@@ -163,7 +163,7 @@ const actions = {
                 throw err;
             });
     },
-    [a.PROJECTS_POST_ANNOTATION]: async ({ state, commit }, annotation) => {
+    [a.PROJECTS_POST_ANNOTATION]: async ({ state, commit }, { annotation }) => {
         commit(m.PROJECTS_FETCHING);
 
         return backend.annotations

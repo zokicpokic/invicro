@@ -93,7 +93,9 @@ export default {
         type: "Polygon",
       });
       this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: this.name });
-      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, this.annotation);
+      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+        annotation: this.annotation,
+      });
       await Promise.all([f])
         .then(() => {})
         .catch((e) => {
