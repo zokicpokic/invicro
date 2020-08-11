@@ -21,8 +21,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" text @click="show = false">Cancel</v-btn>
-        <v-btn color="blue darken-1" text @click="show = false">OK</v-btn>
+        <v-btn color="blue darken-1" text @click="show = false">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -66,13 +65,6 @@ export default {
             if (cl) {
                 this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: cl.name });
             }
-        },
-        // TODO: fix onVisibilityChange...
-        onVisibilityChange: function (item) {
-            this.$store.commit(m.PROJECTS_SET_CLASS_VISIBILITY, {
-                name: item.name,
-                isVisible: !item.isVisible
-            });
         }
     }
 };

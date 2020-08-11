@@ -8,12 +8,19 @@
                 <v-container>
                     <v-row>
                         <v-col cols="12">
-                            <v-text-field v-model="name" label="Enter Class Name"></v-text-field>
+                            <v-text-field
+                                placeholder="class name"
+                                v-model="name"
+                                label="Enter Class Name">
+                            </v-text-field>
                         </v-col>
                     </v-row>
                     <v-row>
                         <v-col cols="12">
-                            <v-text-field v-model="strokeColor" hide-details class="ma-0 pa-0" solo>
+                            <v-text-field
+                                label="Stroke Color"
+                                v-model="strokeColor"
+                                class="ma-0 pa-0">
                                 <template v-slot:append>
                                     <v-menu
                                         v-model="strokeColorMenu"
@@ -23,7 +30,7 @@
                                         :close-on-content-click="false"
                                         >
                                         <template v-slot:activator="{ on }">
-                                            <div :style="swatchStyleStroke" v-on="on" />
+                                            <div :style="swatchStyleStroke" class="mb-2" v-on="on" />
                                         </template>
                                         <v-card>
                                             <v-card-text class="pa-0">
@@ -37,7 +44,10 @@
                     </v-row>
                     <v-row>
                         <v-col cols="12">
-                            <v-text-field v-model="fillColor" hide-details class="ma-0 pa-0" solo>
+                            <v-text-field
+                                label="Fill Color"
+                                v-model="fillColor"
+                                class="ma-0 pa-0">
                                 <template v-slot:append>
                                     <v-menu
                                         v-model="fillColorMenu"
@@ -47,7 +57,7 @@
                                         :close-on-content-click="false"
                                         >
                                         <template v-slot:activator="{ on }">
-                                            <div :style="swatchStyleFill" v-on="on" />
+                                            <div :style="swatchStyleFill" class="mb-2" v-on="on" />
                                         </template>
                                         <v-card>
                                             <v-card-text class="pa-0">
@@ -137,6 +147,7 @@ export default {
             set(value) {
                 if (!value) {
                     this.$emit("close");
+                    this.clearData();
                 }
             },
         },
@@ -145,6 +156,15 @@ export default {
         }
     },
     methods: {
+        clearData: function () {
+            this.name = '';
+            this.strokeColor = "#777777FF";
+            this.fillColor = "#1976D2FF";
+            this.fillColorMenu = false;
+            this.strokeColor =  "#777777FF";
+            this.strokeColorMenu = false;
+            this.opacity = 100;
+        },
         onOk: async function () {
             this.$store.commit(m.PROJECTS_ADD_CLASS, {
                 name: this.name,

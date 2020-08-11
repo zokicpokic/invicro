@@ -85,7 +85,13 @@ const mutations = {
             isVisible: true
         });
     },
-    [m.PROJECTS_SET_CLASS_VISIBILITY](state, { name, isVisible }) {
+    [m.PROJECTS_UPDATE_CLASS] (state, {
+            name,
+            strokeColor,
+            fillColor,
+            opacity,
+            isVisible
+    }) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -93,10 +99,12 @@ const mutations = {
 
         let index = state.annotation.classes.map(e => e.name).indexOf(name);
         if (index >= 0) {
-            // class exists. We can set it as active
-            state.annotation.classes[index].isVisible = isVisible;
+            let cl = state.annotation.classes[index];
+            cl.strokeColor = (strokeColor === undefined) ? cl.strokeColor : strokeColor;
+            cl.fillColor = (fillColor === undefined) ? cl.fillColor : fillColor;
+            cl.opacity = (opacity === undefined) ? cl.opacity : opacity;
+            cl.isVisible = (isVisible === undefined) ? cl.isVisible : isVisible;
         }
-
     },
     [m.PROJECTS_SET_ACTIVE_CLASS](state, { name }) {
         if (state.annotation === undefined)
@@ -108,7 +116,7 @@ const mutations = {
         if (index >= 0) {
             // class exists. We can set it as active
             state.activeClassName = name;
-            state.annotation.activeClassName = name;
+            state.annotation.activeClassName = name; // TODO: check this?
         }
     },
     [m.PROJECTS_DELETE_CLASS](state, { name }) {
