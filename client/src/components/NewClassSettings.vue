@@ -7,25 +7,27 @@
             <v-card-text>
                 <v-container>
                     <v-row>
-                        <v-col cols="12" sm="6">
+                        <v-col cols="12">
                             <v-text-field v-model="name" label="Enter Class Name"></v-text-field>
                         </v-col>
-                        <v-col cols="12" sm="6">
-                            <v-text-field v-model="color" hide-details class="ma-0 pa-0" solo>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-text-field v-model="strokeColor" hide-details class="ma-0 pa-0" solo>
                                 <template v-slot:append>
                                     <v-menu
-                                        v-model="menu"
+                                        v-model="strokeColorMenu"
                                         top
                                         nudge-bottom="105"
                                         nudge-left="16"
                                         :close-on-content-click="false"
                                         >
                                         <template v-slot:activator="{ on }">
-                                            <div :style="swatchStyle" v-on="on" />
+                                            <div :style="swatchStyleStroke" v-on="on" />
                                         </template>
                                         <v-card>
                                             <v-card-text class="pa-0">
-                                                <v-color-picker v-model="color" flat />
+                                                <v-color-picker v-model="strokeColor" flat />
                                             </v-card-text>
                                         </v-card>
                                     </v-menu>
@@ -33,12 +35,56 @@
                             </v-text-field>
                         </v-col>
                     </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-text-field v-model="fillColor" hide-details class="ma-0 pa-0" solo>
+                                <template v-slot:append>
+                                    <v-menu
+                                        v-model="fillColorMenu"
+                                        top
+                                        nudge-bottom="105"
+                                        nudge-left="16"
+                                        :close-on-content-click="false"
+                                        >
+                                        <template v-slot:activator="{ on }">
+                                            <div :style="swatchStyleFill" v-on="on" />
+                                        </template>
+                                        <v-card>
+                                            <v-card-text class="pa-0">
+                                                <v-color-picker v-model="fillColor" flat />
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-menu>
+                                </template>
+                            </v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-card class="d-flex justify-around align-center" flat>
+                                <v-slider
+                                    @change="$emit('input', $event)"
+                                    @input="$emit('input', $event)"
+                                    :thumb-size="24"
+                                    label="Opacity"
+                                    v-model="opacity"
+                                    dense
+                                    hide-details
+                                    class="ma-0"
+                                    min=0
+                                    max=100
+                                    >
+                                </v-slider>
+                                <span class="textForegroundColor--text">{{ opacity }}</span>
+                            </v-card>
+                        </v-col>
+                    </v-row>
                 </v-container>
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1" text @click="show = false">Cancel</v-btn>
-                <v-btn color="blue darken-1" text @click="onOk">OK</v-btn>
+                <v-btn :disabled="okDisabled"  color="blue darken-1" text @click="onOk">OK</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -53,22 +99,34 @@ export default {
     props: ["visible"],
     data: function () {
         return {
-            color: "#1976D2FF",
+            fillColor: "#1976D2FF",
+            fillColorMenu: false,
+            strokeColor: "#777777FF",
+            strokeColorMenu: false,
+            opacity: 100,
             mask: "!#XXXXXXXX",
             name: "",
-            menu: false,
         };
     },
     computed: {
         ...mapGetters(["classes", "activeClassName", "activeClass", "annotation"]),
-        swatchStyle() {
-            const { color, menu } = this;
+        swatchStyleStroke() {
             return {
-                backgroundColor: color,
+                backgroundColor: this.strokeColor,
                 cursor: "pointer",
                 height: "30px",
                 width: "30px",
-                borderRadius: menu ? "50%" : "4px",
+                borderRadius: this.strokeColorMenu ? "50%" : "4px",
+                transition: "border-radius 200ms ease-in-out",
+            };
+        },
+        swatchStyleFill() {
+            return {
+                backgroundColor: this.fillColor,
+                cursor: "pointer",
+                height: "30px",
+                width: "30px",
+                borderRadius: this.fillColorMenu ? "50%" : "4px",
                 transition: "border-radius 200ms ease-in-out",
             };
         },
@@ -82,21 +140,23 @@ export default {
                 }
             },
         },
+        okDisabled: function () {
+            return this.name === undefined || this.name === '';
+        }
     },
     methods: {
         onOk: async function () {
             this.$store.commit(m.PROJECTS_ADD_CLASS, {
                 name: this.name,
-                strokeColor: this.color,
-                fillColor: "#5A5A5A", // TODO: add real values from color picker
-                opacity: 0.5, // TODO: add real values
+                strokeColor: this.strokeColor,
+                fillColor: this.fillColor,
+                opacity: this.opacity / 100.0,
                 type: "Polygon",
             });
             this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: this.name });
-            var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+            this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
                 annotation: this.annotation,
-            });
-            await Promise.all([f])
+            })
                 .then(() => {})
                 .catch((e) => {
                     console.log("error fetcing data");
