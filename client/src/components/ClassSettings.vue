@@ -12,18 +12,8 @@
             <v-list flat>
               <v-subheader>CLASSES</v-subheader>
               <v-list-item-group mandatory value="activeClassName" @change="onSelectionChange" color="primary">
-                <v-list-item v-for="(item) in classes" :key="item.name">
-                  <v-list-item-content>
-                    <v-list-item-title v-text="item.name"></v-list-item-title>
-                  </v-list-item-content>
-                  <v-list-item-icon >
-                    <v-icon large :color="item.strokeColor">mdi-album</v-icon>
-                  </v-list-item-icon>
-                  <v-switch label="Show"
-                      color="primary">
-                      Show
-                  </v-switch>
-                </v-list-item>
+                <class v-for="(item) in classes" :key="item.name" :className="item.name">
+                </class>
               </v-list-item-group>
             </v-list>
           </v-row>
@@ -31,8 +21,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" text @click="show = false">Cancel</v-btn>
-        <v-btn color="blue darken-1" text @click="show = false">OK</v-btn>
+        <v-btn color="blue darken-1" text @click="show = false">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -41,18 +30,16 @@
 <script>
 import * as m from '../store/mutation_types';
 import { mapGetters } from 'vuex';
+import Class from './Class';
 
 export default {
     props: ["visible"],
     data: () => ({
-        item: 0,
-        items: [
-            { text: "class1", icon: "mdi-album", color: "black" },
-            { text: "class2", icon: "mdi-album", color: "red" },
-            { text: "class3", icon: "mdi-album", color: "green" },
-            { text: "MLD File", icon: "mdi-album", color: "yellow" },
-        ],
+
     }),
+    components: {
+        Class
+    },
     computed: {
         ...mapGetters([
             'classes',
@@ -78,13 +65,6 @@ export default {
             if (cl) {
                 this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: cl.name });
             }
-        },
-        // TODO: fix onVisibilityChange...
-        onVisibilityChange: function (item) {
-            this.$store.commit(m.PROJECTS_SET_CLASS_VISIBILITY, {
-                name: item.name,
-                isVisible: !item.isVisible
-            });
         }
     }
 };

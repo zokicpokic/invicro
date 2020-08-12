@@ -84,11 +84,12 @@ export default {
     },
     loadProject: async function () {
       const projectId = this.$route.params.projectId;
+      const studyId = this.$route.params.studyId;
       const serieId = this.$route.params.serieId;
 
       this.$store.commit(m.PROJECTS_SET_ACTIVE, {
         projectId: projectId,
-        studyId: 1,
+        studyId: studyId,
         serieId: serieId,
       });
       var f = this.$store.dispatch(a.PROJECTS_FETCH_DIMENSIONS);
