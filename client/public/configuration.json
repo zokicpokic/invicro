@@ -1,3 +1,3 @@
 {
-  "API_CORE_HOST": "https://localhost:44354/"
+  "API_CORE_HOST": "http://127.0.0.1:5000/"
 }

@@ -1,21 +1,21 @@
 <template>
-  <div>
-    <div id="mapOL"></div>
-    <!--<form class="form-inline">
-      <label>Geometry type &nbsp;</label>
-      <select id="type">
-        <option value="Polygon">Polygon</option>
-      </select>
-      <br />
-      <br />
-      <label for="displayFeatureColor">Feature Color</label>
-      <input type="color" id="displayFeatureColor" @change="featureColorChange($event)" />
-      <br />
-      <br />
-      <input type="checkbox" id="displayMLDId" @change="check($event)" checked />
-      <label for="displayMLDId">Display MLD Overlay</label>
-    </form>-->
-  </div>
+    <div>
+        <div id="mapOL"></div>
+        <!--<form class="form-inline">
+            <label>Geometry type &nbsp;</label>
+            <select id="type">
+            <option value="Polygon">Polygon</option>
+            </select>
+            <br />
+            <br />
+            <label for="displayFeatureColor">Feature Color</label>
+            <input type="color" id="displayFeatureColor" @change="featureColorChange($event)" />
+            <br />
+            <br />
+            <input type="checkbox" id="displayMLDId" @change="check($event)" checked />
+            <label for="displayMLDId">Display MLD Overlay</label>
+            </form>-->
+    </div>
 </template>
 
 <script>
@@ -30,7 +30,7 @@ import { Vector as VectorSource } from "ol/source";
 import GeoJSON from "ol/format/GeoJSON";
 import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
 import { bbox } from "ol/loadingstrategy";
-import { mapGetters, mapState } from "vuex";
+import { mapGetters } from "vuex";
 import * as m from "../../store/mutation_types";
 import * as a from "../../store/action_types";
 
@@ -38,233 +38,217 @@ import * as a from "../../store/action_types";
 //implement vie store
 //include Image width/height as state params
 export default {
-  name: "pathology-image-viewer",
-  data: function () {
-    return {
-      dataMap: null,
-      dataDraw: null,
-      dataSnap: null,
-      featureColor: "#00000",
-    };
-  },
-  computed: {
-    ...mapState(["activeClass", "annotation", "activeGeometry"]),
-    ...mapGetters([
-      "imageWidth",
-      "imageHeight",
-      "annotation",
-      "activeProjectId",
-      "activeStudyId",
-      "activeSerieId",
-      "annotation",
-      "activeClass",
-      "activeGeometry",
-    ]),
-  },
-  watch: {
-    $route: function () {
-      console.log("Route changed");
-      this.loadProject();
-    } /*,
+    name: "pathology-image-viewer",
+    data: function () {
+        return {
+            dataMap: null,
+            dataDraw: null,
+            dataSnap: null,
+            featureColor: "#00000",
+        };
+    },
+    computed: {
+        ...mapGetters([
+            // store getters mapped to this.<GETTER> (this.imageWidth, this.imageHeight, etc...)
+            "imageWidth",
+            "imageHeight",
+            "annotation",
+            "activeProjectId",
+            "activeStudyId",
+            "activeSerieId",
+            "annotation",
+            "activeClass",
+            "activeGeometry",
+        ]),
+    },
+    watch: {
+        $route: function () {
+            console.log("Route changed");
+            this.loadProject();
+        } /*,
     activeGeometry(newValue, oldValue) {
       console.log(`Updating from ${oldValue} to ${newValue}`);
       this.loadProject();
     },*/,
-  },
-  mounted: function () {
-    this.loadProject();
-  },
-  methods: {
-    check: function (e) {
-      var layer = this.dataMap?.getLayers().array_[1];
-      layer?.setVisible(e.target.checked);
     },
-    featureColorChange(e) {
-      this.featureColor = e.target.value;
+    mounted: function () {
+        this.loadProject();
     },
-    loadProject: async function () {
-      const projectId = this.$route.params.projectId;
-      const studyId = this.$route.params.studyId;
-      const serieId = this.$route.params.serieId;
+    methods: {
+        check: function (e) {
+            var layer = this.dataMap?.getLayers().array_[1];
+            layer?.setVisible(e.target.checked);
+        },
+        featureColorChange(e) {
+            this.featureColor = e.target.value;
+        },
+        loadProject: async function () {
+            const projectId = this.$route.params.projectId;
+            const studyId = this.$route.params.studyId;
+            const serieId = this.$route.params.serieId;
 
-      this.$store.commit(m.PROJECTS_SET_ACTIVE, {
-        projectId: projectId,
-        studyId: studyId,
-        serieId: serieId,
-      });
-      var f = this.$store.dispatch(a.PROJECTS_FETCH_DIMENSIONS);
-      var f2 = this.$store.dispatch(a.PROJECTS_FETCH_ANNOTATION);
+            this.$store.commit(m.PROJECTS_SET_ACTIVE, {
+                projectId: projectId,
+                studyId: studyId,
+                serieId: serieId,
+            });
+            var f = this.$store.dispatch(a.PROJECTS_FETCH_DIMENSIONS);
+            var f2 = this.$store.dispatch(a.PROJECTS_FETCH_ANNOTATION);
 
-      await Promise.all([f, f2])
-        .then(() => {})
-        .catch((e) => {
-          console.log("error fetcing data");
-          console.log(e);
-        });
+            await Promise.all([f, f2])
+                .then(() => {})
+                .catch((e) => {
+                    console.log("error fetcing data");
+                    console.log(e);
+                });
 
-      var self = this;
-      //TODO: studyId nije 1?
-      const mldId =
-        self.$route.params.serieId.substring(
-          0,
-          self.$route.params.serieId.length - 4
-        ) + ".mld";
 
-      const serId = self.$route.params.serieId;
-      var imgWidth, imgHeight;
-      axios
-        .get(constants.API_CORE_HOST + "/api/mld/dimensions/1/1/" + serId + "/")
-        .then((response) => {
-          console.log(response);
-          imgWidth = response.data.width;
-          imgHeight = response.data.height;
-          // calculation max extension
-          var maxZoomLevel =
-            Math.floor(Math.max(imgWidth - 1, imgHeight - 1) / 256) + 1;
-          maxZoomLevel = Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
-          var maxResolution = Math.pow(2, maxZoomLevel - 1);
-          var MAX_EXTENTION = maxResolution * 256;
+            const serId = this.$route.params.serieId;
+            console.log('setId ' + serId);
+            var maxZoomLevel =
+                Math.floor(Math.max(this.imageWidth - 1, this.imageHeight - 1) / 256) + 1;
+            maxZoomLevel = Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
+            var maxResolution = Math.pow(2, maxZoomLevel - 1);
+            var MAX_EXTENTION = maxResolution * 256;
 
-          //calculate restricted extent
-          var extent = [
-            -20026376.39,
-            -20048966.1 +
-              ((2 * (MAX_EXTENTION - imgHeight)) / MAX_EXTENTION) * 20048966.1,
-            -20026376.39 + ((2 * imgWidth) / MAX_EXTENTION) * 20026376.39,
-            20048966.1,
-          ];
-          var view = new View({
-            center: [
-              (((2 * imgWidth) / MAX_EXTENTION) * 20026376.39) / 2,
-              (((2 * (MAX_EXTENTION - imgHeight)) / MAX_EXTENTION) *
-                20048966.1) /
-                2,
-            ],
-            zoom: maxZoomLevel / 2,
-            maxZoom: maxZoomLevel - 1,
-            extent: extent,
-          });
+            //calculate restricted extent
+            var extent = [
+                -20026376.39,
+                -20048966.1 +
+                ((2 * (MAX_EXTENTION - this.imageHeight)) / MAX_EXTENTION) * 20048966.1,
+                -20026376.39 + ((2 * this.imageWidth) / MAX_EXTENTION) * 20026376.39,
+                20048966.1,
+            ];
+            var view = new View({
+                center: [
+                    (((2 * this.imageWidth) / MAX_EXTENTION) * 20026376.39) / 2,
+                    (((2 * (MAX_EXTENTION - this.imageHeight)) / MAX_EXTENTION) *
+                        20048966.1) /
+                    2,
+                ],
+                zoom: maxZoomLevel / 2,
+                maxZoom: maxZoomLevel - 1,
+                extent: extent,
+            });
 
-          //use tiles on the fly
-          //to do add bbox to state and return collection of tiles
-          var baseLayer = new TileLayer({
-            name: "Main",
-            source: new XYZ({
-              url:
-                constants.API_CORE_HOST +
-                "/api/region/" +
-                serId +
-                "/{z}/{x}/{y}",
-              wrapX: false,
-            }),
-          });
-
-          var source = new VectorSource({
-            format: new GeoJSON(),
-            wrapX: false,
-            loader: function () {
-              var url =
-                constants.API_CORE_HOST +
-                "/api/mld/1/1/" +
-                mldId +
-                "/" +
-                serId +
-                "/";
-              axios.get(url).then((response) => {
-                if (response.status == 200) {
-                  var res = response.data;
-                  if (res.features) {
-                    var maxZoomLevel =
-                      Math.floor(Math.max(imgWidth - 1, imgHeight - 1) / 256) +
-                      1;
-                    maxZoomLevel =
-                      Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
-                    var maxResolution = Math.pow(2, maxZoomLevel - 1);
-                    var maxExtention = maxResolution * 256;
-
-                    for (var i = 0; i < res.features.length; i++) {
-                      var coordinates = res.features[i].geometry.coordinates;
-                      if (coordinates) {
-                        if (res.features[i].geometry.type != "Point") {
-                          for (var j = 0; j < coordinates.length; j++) {
-                            var coordinates2 = coordinates[j];
-                            if (coordinates2) {
-                              for (var k = 0; k < coordinates2.length; k++) {
-                                var x =
-                                  res.features[i].geometry.coordinates[j][
-                                    k
-                                  ][0] *
-                                    1000 +
-                                  imgWidth / 2;
-                                x =
-                                  (x * 40052752.78) / maxExtention -
-                                  20026376.39;
-                                var y =
-                                  imgHeight / 2 -
-                                  res.features[i].geometry.coordinates[j][
-                                    k
-                                  ][1] *
-                                    1000;
-                                y =
-                                  ((maxExtention - y) * 40097932.2) /
-                                    maxExtention -
-                                  20048966.1;
-                                res.features[i].geometry.coordinates[j][
-                                  k
-                                ][0] = x;
-                                res.features[i].geometry.coordinates[j][
-                                  k
-                                ][1] = y;
-                              }
-                            }
-                          }
-                        } else {
-                          var x1 = res.features[i].geometry.coordinates[0];
-                          x1 = (x1 * 40075016.68) / maxExtention - 20037508.34;
-                          var y1 = res.features[i].geometry.coordinates[1];
-                          y1 =
-                            ((maxExtention - y1) * 40075016.68) / maxExtention -
-                            20037508.34;
-                          res.features[i].geometry.coordinates[0] = x1;
-                          res.features[i].geometry.coordinates[1] = y1;
-                        }
-                      }
-                    }
-                  }
-                  source.clear();
-                  source.addFeatures(
-                    source.getFormat().readFeatures(JSON.stringify(res))
-                  );
-                }
-              });
-            },
-            strategy: bbox,
-          });
-
-          var vector = new VectorLayer({
-            name: "Vector",
-            source: source,
-            style: new Style({
-              fill: new Fill({
-                color: "rgba(255, 255, 255, 0.2)",
-              }),
-              stroke: new Stroke({
-                color: "#ffcc33",
-                width: 2,
-              }),
-              image: new CircleStyle({
-                radius: 2,
-                fill: new Fill({
-                  color: "#ffcc33",
+            //use tiles on the fly
+            //to do add bbox to state and return collection of tiles
+            var baseLayer = new TileLayer({
+                name: "Main",
+                source: new XYZ({
+                    url:
+                    constants.API_CORE_HOST +
+                    "/api/region/1/1/" +
+                    serId +
+                    ".svs/{z}/{x}/{y}",
+                    wrapX: false,
                 }),
-              }),
-            }),
-          });
+            });
 
-          var sourceAnnotations = new VectorSource({
-            format: new GeoJSON(),
-            wrapX: false,
-            /*loader: function () {
+            var source = new VectorSource({
+                format: new GeoJSON(),
+                wrapX: false,
+                loader: function () {
+                    var url =
+                        constants.API_CORE_HOST +
+                        "/api/mld/1/1/" +
+                        serId +
+                        ".svs/";
+                    axios.get(url).then((response) => {
+                        if (response.status == 200) {
+                            var res = response.data;
+                            if (res.features) {
+                                var maxZoomLevel =
+                                    Math.floor(Math.max(this.imageWidth - 1, this.imageHeight - 1) / 256) +
+                                    1;
+                                maxZoomLevel =
+                                    Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
+                                var maxResolution = Math.pow(2, maxZoomLevel - 1);
+                                var maxExtention = maxResolution * 256;
+
+                                for (var i = 0; i < res.features.length; i++) {
+                                    var coordinates = res.features[i].geometry.coordinates;
+                                    if (coordinates) {
+                                        if (res.features[i].geometry.type != "Point") {
+                                            for (var j = 0; j < coordinates.length; j++) {
+                                                var coordinates2 = coordinates[j];
+                                                if (coordinates2) {
+                                                    for (var k = 0; k < coordinates2.length; k++) {
+                                                        var x =
+                                                            res.features[i].geometry.coordinates[j][
+                                                                k
+                                                            ][0] *
+                                                            1000 +
+                                                            this.imageWidth / 2;
+                                                        x =
+                                                            (x * 40052752.78) / maxExtention -
+                                                            20026376.39;
+                                                        var y =
+                                                            this.imageHeight / 2 -
+                                                            res.features[i].geometry.coordinates[j][
+                                                                k
+                                                            ][1] *
+                                                            1000;
+                                                        y =
+                                                            ((maxExtention - y) * 40097932.2) /
+                                                            maxExtention -
+                                                            20048966.1;
+                                                        res.features[i].geometry.coordinates[j][
+                                                            k
+                                                        ][0] = x;
+                                                        res.features[i].geometry.coordinates[j][
+                                                            k
+                                                        ][1] = y;
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            var x1 = res.features[i].geometry.coordinates[0];
+                                            x1 = (x1 * 40075016.68) / maxExtention - 20037508.34;
+                                            var y1 = res.features[i].geometry.coordinates[1];
+                                            y1 =
+                                                ((maxExtention - y1) * 40075016.68) / maxExtention -
+                                                20037508.34;
+                                            res.features[i].geometry.coordinates[0] = x1;
+                                            res.features[i].geometry.coordinates[1] = y1;
+                                        }
+                                    }
+                                }
+                            }
+                            source.clear();
+                            source.addFeatures(
+                                source.getFormat().readFeatures(JSON.stringify(res))
+                            );
+                        }
+                    });
+                },
+                strategy: bbox,
+            });
+
+            var vector = new VectorLayer({
+                name: "Vector",
+                source: source,
+                style: new Style({
+                    fill: new Fill({
+                        color: "rgba(255, 255, 255, 0.2)",
+                    }),
+                    stroke: new Stroke({
+                        color: "#ffcc33",
+                        width: 2,
+                    }),
+                    image: new CircleStyle({
+                        radius: 2,
+                        fill: new Fill({
+                            color: "#ffcc33",
+                        }),
+                    }),
+                }),
+            });
+
+            var sourceAnnotations = new VectorSource({
+                format: new GeoJSON(),
+                wrapX: false,
+                /*loader: function () {
               var url =
                 constants.API_CORE_HOST + "/api/annotations/1/1/" + serId + "/";
               axios.get(url).then((response) => {
@@ -279,85 +263,85 @@ export default {
                 }
               });
             }*/ strategy: bbox,
-          });
+            });
 
-          sourceAnnotations.clear();
-          sourceAnnotations.addFeatures(
-            sourceAnnotations
-              .getFormat()
-              .readFeatures(JSON.stringify(self.annotation))
-          );
+            sourceAnnotations.clear();
+            sourceAnnotations.addFeatures(
+                sourceAnnotations
+                .getFormat()
+                .readFeatures(JSON.stringify(this.annotation))
+            );
 
-          var styleFunction = function (feature) {
-            console.log(feature);
-            if (self.activeClass) {
-              var retStyle = new Style({
-                stroke: new Stroke({
-                  color: self.activeClass.strokeColor,
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: self.activeClass.fillColor,
-                }),
-              });
-              return retStyle;
+            var styleFunction = function (feature) {
+                console.log(feature);
+                if (this.activeClass) {
+                    var retStyle = new Style({
+                        stroke: new Stroke({
+                            color: this.activeClass.strokeColor,
+                            width: 2,
+                        }),
+                        fill: new Fill({
+                            color: this.activeClass.fillColor,
+                        }),
+                    });
+                    return retStyle;
+                }
+
+                return undefined;
+            };
+            var vectorAnnotations = new VectorLayer({
+                name: "Vector",
+                source: sourceAnnotations,
+                style: styleFunction,
+            });
+
+            var map = new Map({
+                target: "mapOL",
+                layers: [baseLayer, vector, vectorAnnotations],
+                view: view,
+            });
+            this.dataMap = map;
+
+            var modify = new Modify({ source: sourceAnnotations });
+            console.log(modify);
+            map.addInteraction(modify);
+            var draw, snap; // global so we can remove them later
+            //var typeSelect = document.getElementById("type");
+
+            function addInteractions() {
+                draw = new Draw({
+                    source: sourceAnnotations,
+                    type: this.activeGeometry ? this.activeGeometry : "Polygon",
+                });
+                draw.on("drawend", drawEnd);
+                map.addInteraction(draw);
+                snap = new Snap({ source: sourceAnnotations });
+                map.addInteraction(snap);
+                this.dataDraw = draw;
+                this.dataSnap = snap;
             }
 
-            return undefined;
-          };
-          var vectorAnnotations = new VectorLayer({
-            name: "Vector",
-            source: sourceAnnotations,
-            style: styleFunction,
-          });
+            async function drawEnd(e) {
+                var writer = new GeoJSON();
+                e.feature.set("class", this.activeClass.name);
+                var feature = writer.writeFeature(e.feature);
+                this.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
+                    feature: JSON.parse(feature),
+                });
+                var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+                    annotation: this.annotation,
+                });
 
-          var map = new Map({
-            target: "mapOL",
-            layers: [baseLayer, vector, vectorAnnotations],
-            view: view,
-          });
-          self.dataMap = map;
+                await Promise.all([f])
+                    .then(() => {})
+                    .catch((e) => {
+                        console.log(
+                            "error fetcing PROJECTS_ANNOTATION_ADD_FEATURE data"
+                        );
+                        console.log(e);
+                    });
 
-          var modify = new Modify({ source: sourceAnnotations });
-          console.log(modify);
-          map.addInteraction(modify);
-          var draw, snap; // global so we can remove them later
-          //var typeSelect = document.getElementById("type");
-
-          function addInteractions() {
-            draw = new Draw({
-              source: sourceAnnotations,
-              type: self.activeGeometry ? self.activeGeometry : "Polygon",
-            });
-            draw.on("drawend", drawEnd);
-            map.addInteraction(draw);
-            snap = new Snap({ source: sourceAnnotations });
-            map.addInteraction(snap);
-            self.dataDraw = draw;
-            self.dataSnap = snap;
-          }
-
-          async function drawEnd(e) {
-            var writer = new GeoJSON();
-            e.feature.set("class", self.activeClass.name);
-            var feature = writer.writeFeature(e.feature);
-            self.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
-              feature: JSON.parse(feature),
-            });
-            var f = self.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
-              annotation: self.annotation,
-            });
-
-            await Promise.all([f])
-              .then(() => {})
-              .catch((e) => {
-                console.log(
-                  "error fetcing PROJECTS_ANNOTATION_ADD_FEATURE data"
-                );
-                console.log(e);
-              });
-
-            /*var writer = new GeoJSON();
+                /*var writer = new GeoJSON();
             e.feature.set("class", JSON.stringify(self.activeClass));
             var features = sourceAnnotations.getFeatures();
             features = features.concat(e.feature);
@@ -369,24 +353,24 @@ export default {
             axios
               .post(url, JSON.parse(geojsonStr))
               .then((response) => console.log(response));*/
-          }
+            }
 
-          /*typeSelect.onchange = function () {
+            /*typeSelect.onchange = function () {
             map.removeInteraction(draw);
             map.removeInteraction(snap);
             addInteractions();
           };*/
 
-          addInteractions();
-        });
+            addInteractions();
+            //});
+        },
     },
-  },
 };
 </script>
 <style>
 @import "~ol/ol.css";
 
 #mapOL {
-  height: 600px;
+    height: 600px;
 }
 </style>
