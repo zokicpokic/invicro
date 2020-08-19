@@ -144,7 +144,7 @@ export default {
                     wrapX: false,
                 }),
             });
-
+            var self = this;
             var source = new VectorSource({
                 format: new GeoJSON(),
                 wrapX: false,
@@ -153,13 +153,13 @@ export default {
                         constants.API_CORE_HOST +
                         "/api/mld/1/1/" +
                         serId +
-                        ".svs/";
+                        ".mld/";
                     axios.get(url).then((response) => {
                         if (response.status == 200) {
                             var res = response.data;
                             if (res.features) {
                                 var maxZoomLevel =
-                                    Math.floor(Math.max(this.imageWidth - 1, this.imageHeight - 1) / 256) +
+                                    Math.floor(Math.max(self.imageWidth - 1, self.imageHeight - 1) / 256) +
                                     1;
                                 maxZoomLevel =
                                     Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
@@ -179,12 +179,12 @@ export default {
                                                                 k
                                                             ][0] *
                                                             1000 +
-                                                            this.imageWidth / 2;
+                                                            self.imageWidth / 2;
                                                         x =
                                                             (x * 40052752.78) / maxExtention -
                                                             20026376.39;
                                                         var y =
-                                                            this.imageHeight / 2 -
+                                                            self.imageHeight / 2 -
                                                             res.features[i].geometry.coordinates[j][
                                                                 k
                                                             ][1] *
