@@ -10,6 +10,7 @@ const state = {
     activeSerieId: undefined,
     activeClassName: undefined,
     activeGeometry: 'Polygon',
+    mldContent: undefined,
     annotation: {
         features: [],
         type: "FeatureCollection",
@@ -31,6 +32,7 @@ const getters = {
     geometries: state => state.geometries,
     activeGeometry: state => state.activeGeometry,
     activeClassName: state => state.activeClassName,
+    mldContent: state => state.mldContent,
     activeClass: (state, getters) => getters.classes ? getters.classes.find(x => x.name === state.activeClassName) : undefined
 };
 
@@ -42,6 +44,70 @@ const mutations = {
     },
     [m.PROJECTS_FETCHING](state) {
         state.fetching = true;
+    },
+    [m.PROJECTS_SET_MLD_CONTENT] (state, mldContent) {
+        console.log('>>>> SET MLD CONTENT <<<');
+        console.log(mldContent);
+        if (mldContent.features) {
+            var maxZoomLevel =
+                Math.floor(Math.max(state.imageWidth - 1, state.imageHeight - 1) / 256) +
+                1;
+            maxZoomLevel =
+                Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
+            var maxResolution = Math.pow(2, maxZoomLevel - 1);
+            var maxExtention = maxResolution * 256;
+
+            for (var i = 0; i < mldContent.features.length; i++) {
+                var coordinates = mldContent.features[i].geometry.coordinates;
+                if (coordinates) {
+                    if (mldContent.features[i].geometry.type != "Point") {
+                        for (var j = 0; j < coordinates.length; j++) {
+                            var coordinates2 = coordinates[j];
+                            if (coordinates2) {
+                                for (var k = 0; k < coordinates2.length; k++) {
+                                    var x =
+                                        mldContent.features[i].geometry.coordinates[j][
+                                            k
+                                        ][0] *
+                                        1000 +
+                                        state.imageWidth / 2;
+                                    x =
+                                        (x * 40052752.78) / maxExtention -
+                                        20026376.39;
+                                    var y =
+                                        state.imageHeight / 2 -
+                                        mldContent.features[i].geometry.coordinates[j][
+                                            k
+                                        ][1] *
+                                        1000;
+                                    y =
+                                        ((maxExtention - y) * 40097932.2) /
+                                        maxExtention -
+                                        20048966.1;
+                                    mldContent.features[i].geometry.coordinates[j][
+                                        k
+                                    ][0] = x;
+                                    mldContent.features[i].geometry.coordinates[j][
+                                        k
+                                    ][1] = y;
+                                }
+                            }
+                        }
+                    } else {
+                        var x1 = mldContent.features[i].geometry.coordinates[0];
+                        x1 = (x1 * 40075016.68) / maxExtention - 20037508.34;
+                        var y1 = mldContent.features[i].geometry.coordinates[1];
+                        y1 =
+                            ((maxExtention - y1) * 40075016.68) / maxExtention -
+                            20037508.34;
+                        mldContent.features[i].geometry.coordinates[0] = x1;
+                        mldContent.features[i].geometry.coordinates[1] = y1;
+                    }
+                }
+            }
+        }
+        console.log('SET FINISHED <<<<');
+        state.mldContent = mldContent;
     },
     [m.PROJECTS_SET_ANNOTATION](state, annotation) {
         state.fetching = false;
@@ -192,6 +258,16 @@ const actions = {
             })
             .catch(err => {
                 throw err;
+            });
+    },
+    [a.PROJECTS_FETCH_MLD_CONTENT]: async ({ state, commit }) => {
+        return backend.mld.get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
+            .then(res => {
+                commit(m.PROJECTS_SET_MLD_CONTENT, res);
+            })
+            .catch(e => {
+                console.log('ERR: failed to fetch mld data');
+                console.log(e);
             });
     }
 };
