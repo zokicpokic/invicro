@@ -1,20 +1,6 @@
 <template>
     <div>
         <div id="mapOL"></div>
-        <!--<form class="form-inline">
-            <label>Geometry type &nbsp;</label>
-            <select id="type">
-            <option value="Polygon">Polygon</option>
-            </select>
-            <br />
-            <br />
-            <label for="displayFeatureColor">Feature Color</label>
-            <input type="color" id="displayFeatureColor" @change="featureColorChange($event)" />
-            <br />
-            <br />
-            <input type="checkbox" id="displayMLDId" @change="check($event)" checked />
-            <label for="displayMLDId">Display MLD Overlay</label>
-            </form>-->
     </div>
 </template>
 
@@ -27,15 +13,12 @@ import { Draw, Modify, Snap } from "ol/interaction";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { Vector as VectorSource } from "ol/source";
 import GeoJSON from "ol/format/GeoJSON";
-import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
+import { /* Circle as CircleStyle, */ Fill, Stroke, Style } from "ol/style";
 import { bbox } from "ol/loadingstrategy";
 import { mapGetters } from "vuex";
 import * as m from "../../store/mutation_types";
 import * as a from "../../store/action_types";
 
-//To DO:
-//implement vie store
-//include Image width/height as state params
 export default {
     name: "pathology-image-viewer",
     data: function () {
@@ -48,7 +31,6 @@ export default {
     },
     computed: {
         ...mapGetters([
-            // store getters mapped to this.<GETTER> (this.imageWidth, this.imageHeight, etc...)
             "imageWidth",
             "imageHeight",
             "annotation",
@@ -58,7 +40,8 @@ export default {
             "annotation",
             "activeClass",
             "activeGeometry",
-            "mldContent"
+            "mldContent",
+            "mldType"
         ]),
     },
     watch: {
@@ -72,22 +55,20 @@ export default {
         imageHeight: function () {
             this.initView();
         },
-        mldContent: function () {
-            this.updateSource();
-        },
-        annotation: function () {
+        annotation: function (val) {
+            console.log('annotation');
+            console.log(val);
             this.sourceAnnotations.clear();
             this.sourceAnnotations.addFeatures(
                 this.sourceAnnotations
                 .getFormat()
-                .readFeatures(JSON.stringify(this.annotation))
+                .readFeatures(JSON.stringify(val))
             );
+        },
+        activeGeometry(newValue, oldValue) {
+            console.log(`Updating from ${oldValue} to ${newValue}`);
+            this.addInteractions();
         }
-        /*,
-    activeGeometry(newValue, oldValue) {
-      console.log(`Updating from ${oldValue} to ${newValue}`);
-      this.loadProject();
-    },*/,
     },
     mounted: function () {
         this.loadProject();
@@ -129,11 +110,53 @@ export default {
             });
             this.dataMap.setView(this.view);
         },
-        updateSource: function () {
-            this.source.clear();
-            this.source.addFeatures(
-                this.source.getFormat().readFeatures(JSON.stringify(this.mldContent))
-            );
+        addInteractions: function () {
+            if (this.dataDraw) {
+                this.dataMap.removeInteraction(this.dataDraw);
+            }
+            if (this.dataSnap) {
+                this.dataMap.removeInteraction(this.dataSnap);
+            }
+
+            // https://openlayers.org/en/latest/apidoc/module-ol_geom_GeometryType.html
+            let draw = new Draw({
+                source: this.sourceAnnotations,
+                type: this.activeGeometry ? this.activeGeometry : "Polygon",
+            });
+            draw.on("drawend", this.drawEnd);
+            let snap = new Snap({ source: this.sourceAnnotations });
+            this.dataMap.addInteraction(draw);
+            this.dataMap.addInteraction(snap);
+            this.dataDraw = draw;
+            this.dataSnap = snap;
+        },
+        drawEnd: async function (e) {
+            var writer = new GeoJSON();
+            e.feature.set("class", this.activeClass.name);
+            var feature = writer.writeFeature(e.feature);
+            this.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
+                feature: JSON.parse(feature),
+            });
+            this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+                annotation: this.annotation,
+            });
+        },
+        styleFunction: function (feature) {
+            console.log(feature);
+            if (this.activeClass) {
+                var retStyle = new Style({
+                    stroke: new Stroke({
+                        color: this.activeClass.strokeColor,
+                        width: 2,
+                    }),
+                    fill: new Fill({
+                        color: this.activeClass.fillColor,
+                    }),
+                });
+                return retStyle;
+            }
+
+            return undefined;
         },
         loadProject: async function () {
             console.log("loadProject");
@@ -151,37 +174,9 @@ export default {
 
             let map = new Map({
                 target: "mapOL",
-                // layers: [baseLayer, vector, vectorAnnotations],
-                // view: this.view,
             });
             this.dataMap = map;
 
-            this.source = new VectorSource({
-                format: new GeoJSON(),
-                wrapX: false,
-                strategy: bbox,
-            });
-            this.vector = new VectorLayer({
-                name: "Vector",
-                source: this.source,
-                style: new Style({
-                    fill: new Fill({
-                        color: "rgba(255, 255, 255, 0.2)",
-                    }),
-                    stroke: new Stroke({
-                        color: "#ffcc33",
-                        width: 2,
-                    }),
-                    image: new CircleStyle({
-                        radius: 2,
-                        fill: new Fill({
-                            color: "#ffcc33",
-                        }),
-                    }),
-                }),
-            });
-
-            //use tiles on the fly
             //to do add bbox to state and return collection of tiles
             this.baseLayer = new TileLayer({
                 name: "Main",
@@ -206,93 +201,36 @@ export default {
             this.vectorAnnotations = new VectorLayer({
                 name: "Vector",
                 source: this.sourceAnnotations,
-                style: styleFunction,
+                style: this.styleFunction,
             });
 
             this.dataMap.addLayer(this.baseLayer);
-            this.dataMap.addLayer(this.vector);
             this.dataMap.addLayer(this.vectorAnnotations);
 
             this.$store.dispatch(a.PROJECTS_FETCH_DIMENSIONS);
-            this.$store.dispatch(a.PROJECTS_FETCH_ANNOTATION);
-            this.$store.dispatch(a.PROJECTS_FETCH_MLD_CONTENT);
+            this.$store.dispatch(a.PROJECTS_FETCH_ANNOTATION).then(() => {
+                console.log(this.mldType);
+                if (this.mldType == 'mld') {
+                    this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, { annotation: this.mldContent }).
+                        then(() => {
+                            this.$store.dispatch(a.PROJECTS_FETCH_ANNOTATION);
+                        });
+                }
+            });
 
             console.log("loadProject 2");
 
-            var styleFunction = function (feature) {
-                console.log(feature);
-                if (this.activeClass) {
-                    var retStyle = new Style({
-                        stroke: new Stroke({
-                            color: this.activeClass.strokeColor,
-                            width: 2,
-                        }),
-                        fill: new Fill({
-                            color: this.activeClass.fillColor,
-                        }),
-                    });
-                    return retStyle;
-                }
-
-                return undefined;
-            };
 
             var modify = new Modify({ source: this.sourceAnnotations });
             console.log(modify);
             map.addInteraction(modify);
-            var draw, snap; // global so we can remove them later
+            // var draw, snap; // global so we can remove them later
             //var typeSelect = document.getElementById("type");
 
 
-            let activeGeometry = this.activeGeometry;
-            let self = this;
+            // let activeGeometry = this.activeGeometry;
+            // let self = this;
 
-            function addInteractions() {
-                draw = new Draw({
-                    source: self.sourceAnnotations,
-                    type: activeGeometry ? activeGeometry : "Polygon",
-                });
-                draw.on("drawend", drawEnd);
-                map.addInteraction(draw);
-                snap = new Snap({ source: self.sourceAnnotations });
-                map.addInteraction(snap);
-                self.dataDraw = draw;
-                self.dataSnap = snap;
-            }
-
-            async function drawEnd(e) {
-                var writer = new GeoJSON();
-                e.feature.set("class", this.activeClass.name);
-                var feature = writer.writeFeature(e.feature);
-                this.$store.commit(m.PROJECTS_ANNOTATION_ADD_FEATURE, {
-                    feature: JSON.parse(feature),
-                });
-                var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
-                    annotation: this.annotation,
-                });
-
-                await Promise.all([f])
-                    .then(() => {})
-                    .catch((e) => {
-                        console.log(
-                            "error fetcing PROJECTS_ANNOTATION_ADD_FEATURE data"
-                        );
-                        console.log(e);
-                    });
-
-                /*var writer = new GeoJSON();
-            e.feature.set("class", JSON.stringify(self.activeClass));
-            var features = sourceAnnotations.getFeatures();
-            features = features.concat(e.feature);
-            var geojsonStr = writer.writeFeatures(features);
-            console.log(geojsonStr);
-            var url =
-              constants.API_CORE_HOST + "/api/annotations/1/1/" + serId + "/";
-
-            axios
-              .post(url, JSON.parse(geojsonStr))
-              .then((response) => console.log(response));*/
-            }
 
             /*typeSelect.onchange = function () {
             map.removeInteraction(draw);
@@ -300,7 +238,7 @@ export default {
             addInteractions();
           };*/
 
-            addInteractions();
+            this.addInteractions();
             //});
 
 

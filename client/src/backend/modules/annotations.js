@@ -6,10 +6,10 @@ export const annotations = {
     get: async (projectId, studyId, serieId) => {
         return axios
             .get(
-                constants.API_CORE_HOST + '/api/annotations/' +
+                constants.API_CORE_HOST + '/api/mld/' +
                 projectId + '/' +
                 studyId + '/' +
-                serieId + '/')
+                serieId + '.svs/')
             .then(response => {
                 return response.data;
             });
@@ -17,10 +17,10 @@ export const annotations = {
     post: async (projectId, studyId, serieId, annotation) => {
         console.log(annotation);
         return axios
-            .post(constants.API_CORE_HOST + '/api/annotations/' +
+            .post(constants.API_CORE_HOST + '/api/mld/' +
                 projectId + '/' +
                 studyId + '/' +
-                serieId + '/', annotation)
+                serieId + '.svs/', annotation)
             .then(response => {
                 return response.data;
             });

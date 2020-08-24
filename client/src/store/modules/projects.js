@@ -3,6 +3,26 @@ import * as a from '../action_types';
 import { backend } from '../../backend/index';
 import Vue from 'vue';
 
+function getEmptyAnnotation () {
+    return {
+        features: [],
+        type: "FeatureCollection",
+        classes: [],
+        // activeClassName ???
+    };
+}
+
+function getDefaultClass () {
+    return {
+        name: 'Default',
+        strokeColor: '#00000077',
+        fillColor: '#FFFFFF77',
+        opacity: 0.8,
+        type: "Polygon",
+    };
+}
+
+
 const state = {
     fetching: false,
     activeProjectId: undefined,
@@ -11,11 +31,8 @@ const state = {
     activeClassName: undefined,
     activeGeometry: 'Polygon',
     mldContent: undefined,
-    annotation: {
-        features: [],
-        type: "FeatureCollection",
-        classes: []
-    },
+    mldType: undefined,
+    annotation: getEmptyAnnotation(),
     imageWidth: undefined,
     imageHeight: undefined
 };
@@ -33,6 +50,7 @@ const getters = {
     activeGeometry: state => state.activeGeometry,
     activeClassName: state => state.activeClassName,
     mldContent: state => state.mldContent,
+    mldType: state => state.mldType,
     activeClass: (state, getters) => getters.classes ? getters.classes.find(x => x.name === state.activeClassName) : undefined
 };
 
@@ -45,10 +63,11 @@ const mutations = {
     [m.PROJECTS_FETCHING](state) {
         state.fetching = true;
     },
-    [m.PROJECTS_SET_MLD_CONTENT] (state, mldContent) {
+    [m.PROJECTS_SET_MLD_CONTENT] (state, res) {
         console.log('>>>> SET MLD CONTENT <<<');
-        console.log(mldContent);
+        let mldContent = res;
         if (mldContent.features) {
+            // TODO: move this conversion to the backend
             var maxZoomLevel =
                 Math.floor(Math.max(state.imageWidth - 1, state.imageHeight - 1) / 256) +
                 1;
@@ -108,11 +127,21 @@ const mutations = {
         }
         console.log('SET FINISHED <<<<');
         state.mldContent = mldContent;
+        state.mldType = 'mld';
     },
     [m.PROJECTS_SET_ANNOTATION](state, annotation) {
         state.fetching = false;
         Vue.set(state, 'annotation', annotation);
-        if (annotation != null && annotation.classes != null) {
+        if (annotation != null) {
+
+            if (annotation.classes == undefined) {
+                annotation.classes = [];
+            }
+
+            if (annotation.classes.length == 0) {
+                annotation.classes.push(getDefaultClass());
+            }
+
             var activeClassname = (annotation.activeClassName) ? annotation.activeClassName : annotation.classes[0].name;
             if (activeClassname) {
                 Vue.set(state, 'activeClassName', activeClassname);
@@ -122,10 +151,8 @@ const mutations = {
                 Vue.set(state, 'activeGeometry', activeGeometry);
             }
         }
-    },
-    [m.PROJECTS_SET_ANNOTATION_FAILED](state) {
-        state.annotation = undefined;
-        state.fetching = false;
+
+        state.mldType = 'json';
     },
     [m.PROJECTS_SET_DIMENSIONS](state, { width, height }) {
         state.imageWidth = width;
@@ -199,11 +226,7 @@ const mutations = {
     },
     [m.PROJECTS_ADD_EMPTY_ANNOTATION](state) {
         state.fetching = false;
-        state.annotation = {
-            features: [],
-            type: "FeatureCollection",
-            classes: []
-        };
+        state.annotation = getEmptyAnnotation();
     },
     [m.PROJECTS_SET_ACTIVE_GEOMETRY](state, { geometry }) {
         state.activeGeometry = geometry;
@@ -222,23 +245,31 @@ const actions = {
 
         return backend.annotations.get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
             .then(res => {
-                if (res != undefined &&
-                    res.features != undefined &&
-                    res.type != undefined) {
-                    commit(m.PROJECTS_SET_ANNOTATION, res);
-                } else {
+                if (res == undefined &&
+                    res.data == undefined &&
+                    res.data.features == undefined)
+                {
                     commit(m.PROJECTS_ADD_EMPTY_ANNOTATION);
+                    return;
+                }
+
+                if (res.type == 'mld') {
+                    console.log('mld type set');
+                    commit(m.PROJECTS_SET_MLD_CONTENT, res.data);
+                } else if (res.type == 'json') {
+                    console.log('json type set');
+                    commit(m.PROJECTS_SET_ANNOTATION, res.data);
                 }
                 return res;
             })
             .catch(err => {
-                commit(m.PROJECTS_SET_ANNOTATION_FAILED);
                 commit(m.PROJECTS_ADD_EMPTY_ANNOTATION);
                 throw err;
             });
     },
     [a.PROJECTS_POST_ANNOTATION]: async ({ state, commit }, { annotation }) => {
         commit(m.PROJECTS_FETCHING);
+        console.log('ACTION POST ANNOTATION');
 
         return backend.annotations
             .post(state.activeProjectId, state.activeStudyId, state.activeSerieId, annotation)
@@ -258,16 +289,6 @@ const actions = {
             })
             .catch(err => {
                 throw err;
-            });
-    },
-    [a.PROJECTS_FETCH_MLD_CONTENT]: async ({ state, commit }) => {
-        return backend.mld.get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
-            .then(res => {
-                commit(m.PROJECTS_SET_MLD_CONTENT, res);
-            })
-            .catch(e => {
-                console.log('ERR: failed to fetch mld data');
-                console.log(e);
             });
     }
 };
