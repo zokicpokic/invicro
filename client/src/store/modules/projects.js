@@ -17,7 +17,7 @@ function getDefaultClass() {
         name: 'Default',
         strokeColor: '#00000077',
         fillColor: '#FFFFFF77',
-        opacity: 0.8,
+        //opacity: 0.8,
         type: "Polygon",
         isVisible: true
     };
@@ -165,7 +165,7 @@ const mutations = {
         state.imageWidth = width;
         state.imageHeight = height;
     },
-    [m.PROJECTS_ADD_CLASS](state, {name, strokeColor, fillColor, opacity}) {
+    [m.PROJECTS_ADD_CLASS](state, {name, strokeColor, fillColor}) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -181,7 +181,7 @@ const mutations = {
             name,
             strokeColor,
             fillColor,
-            opacity,
+            //opacity,
             isVisible: true
         });
     },
@@ -189,7 +189,7 @@ const mutations = {
         name,
         strokeColor,
         fillColor,
-        opacity,
+        //opacity,
         isVisible
     }) {
         if (state.annotation === undefined)
@@ -202,7 +202,7 @@ const mutations = {
             let cl = state.annotation.classes[index];
             cl.strokeColor = (strokeColor === undefined) ? cl.strokeColor : strokeColor;
             cl.fillColor = (fillColor === undefined) ? cl.fillColor : fillColor;
-            cl.opacity = (opacity === undefined) ? cl.opacity : opacity;
+            //cl.opacity = (opacity === undefined) ? cl.opacity : opacity;
             cl.isVisible = (isVisible === undefined) ? cl.isVisible : isVisible;
         }
         Vue.set(state, 'classChanged', !state.classChanged);
