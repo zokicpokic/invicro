@@ -1,9 +1,9 @@
 import * as m from '../mutation_types';
 import * as a from '../action_types';
-import { backend } from '../../backend/index';
+import {backend} from '../../backend/index';
 import Vue from 'vue';
 
-function getEmptyAnnotation () {
+function getEmptyAnnotation() {
     return {
         features: [],
         type: "FeatureCollection",
@@ -12,13 +12,14 @@ function getEmptyAnnotation () {
     };
 }
 
-function getDefaultClass () {
+function getDefaultClass() {
     return {
         name: 'Default',
         strokeColor: '#00000077',
         fillColor: '#FFFFFF77',
         opacity: 0.8,
         type: "Polygon",
+        isVisible: true
     };
 }
 
@@ -34,7 +35,8 @@ const state = {
     mldType: undefined,
     annotation: getEmptyAnnotation(),
     imageWidth: undefined,
-    imageHeight: undefined
+    imageHeight: undefined,
+    classChanged: false
 };
 
 const getters = {
@@ -51,11 +53,12 @@ const getters = {
     activeClassName: state => state.activeClassName,
     mldContent: state => state.mldContent,
     mldType: state => state.mldType,
-    activeClass: (state, getters) => getters.classes ? getters.classes.find(x => x.name === state.activeClassName) : undefined
+    activeClass: (state, getters) => getters.classes ? getters.classes.find(x => x.name === state.activeClassName) : undefined,
+    classChanged: state => state.classChanged
 };
 
 const mutations = {
-    [m.PROJECTS_SET_ACTIVE](state, { projectId, studyId, serieId }) {
+    [m.PROJECTS_SET_ACTIVE](state, {projectId, studyId, serieId}) {
         state.activeProjectId = projectId;
         state.activeStudyId = studyId;
         state.activeSerieId = serieId;
@@ -63,7 +66,7 @@ const mutations = {
     [m.PROJECTS_FETCHING](state) {
         state.fetching = true;
     },
-    [m.PROJECTS_SET_MLD_CONTENT] (state, res) {
+    [m.PROJECTS_SET_MLD_CONTENT](state, res) {
         console.log('>>>> SET MLD CONTENT <<<');
         let mldContent = res;
         if (mldContent.features) {
@@ -87,7 +90,7 @@ const mutations = {
                                     var x =
                                         mldContent.features[i].geometry.coordinates[j][
                                             k
-                                        ][0] *
+                                            ][0] *
                                         1000 +
                                         state.imageWidth / 2;
                                     x =
@@ -97,7 +100,7 @@ const mutations = {
                                         state.imageHeight / 2 -
                                         mldContent.features[i].geometry.coordinates[j][
                                             k
-                                        ][1] *
+                                            ][1] *
                                         1000;
                                     y =
                                         ((maxExtention - y) * 40097932.2) /
@@ -105,10 +108,10 @@ const mutations = {
                                         20048966.1;
                                     mldContent.features[i].geometry.coordinates[j][
                                         k
-                                    ][0] = x;
+                                        ][0] = x;
                                     mldContent.features[i].geometry.coordinates[j][
                                         k
-                                    ][1] = y;
+                                        ][1] = y;
                                 }
                             }
                         }
@@ -123,6 +126,10 @@ const mutations = {
                         mldContent.features[i].geometry.coordinates[1] = y1;
                     }
                 }
+                if (!mldContent.features[i].properties) {
+                    mldContent.features[i].properties = {};
+                }
+                mldContent.features[i].properties.class = "Default";
             }
         }
         console.log('SET FINISHED <<<<');
@@ -154,11 +161,11 @@ const mutations = {
 
         state.mldType = 'json';
     },
-    [m.PROJECTS_SET_DIMENSIONS](state, { width, height }) {
+    [m.PROJECTS_SET_DIMENSIONS](state, {width, height}) {
         state.imageWidth = width;
         state.imageHeight = height;
     },
-    [m.PROJECTS_ADD_CLASS](state, { name, strokeColor, fillColor, opacity }) {
+    [m.PROJECTS_ADD_CLASS](state, {name, strokeColor, fillColor, opacity}) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -178,12 +185,12 @@ const mutations = {
             isVisible: true
         });
     },
-    [m.PROJECTS_UPDATE_CLASS] (state, {
-            name,
-            strokeColor,
-            fillColor,
-            opacity,
-            isVisible
+    [m.PROJECTS_UPDATE_CLASS](state, {
+        name,
+        strokeColor,
+        fillColor,
+        opacity,
+        isVisible
     }) {
         if (state.annotation === undefined)
             return;
@@ -198,8 +205,9 @@ const mutations = {
             cl.opacity = (opacity === undefined) ? cl.opacity : opacity;
             cl.isVisible = (isVisible === undefined) ? cl.isVisible : isVisible;
         }
+        Vue.set(state, 'classChanged', !state.classChanged);
     },
-    [m.PROJECTS_SET_ACTIVE_CLASS](state, { name }) {
+    [m.PROJECTS_SET_ACTIVE_CLASS](state, {name}) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -212,7 +220,7 @@ const mutations = {
             state.annotation.activeClassName = name; // TODO: check this?
         }
     },
-    [m.PROJECTS_DELETE_CLASS](state, { name }) {
+    [m.PROJECTS_DELETE_CLASS](state, {name}) {
         if (state.annotation === undefined)
             return;
         if (state.annotation.classes == undefined)
@@ -228,11 +236,11 @@ const mutations = {
         state.fetching = false;
         state.annotation = getEmptyAnnotation();
     },
-    [m.PROJECTS_SET_ACTIVE_GEOMETRY](state, { geometry }) {
+    [m.PROJECTS_SET_ACTIVE_GEOMETRY](state, {geometry}) {
         state.activeGeometry = geometry;
         state.annotation.activeGeometry = geometry;
     },
-    [m.PROJECTS_ANNOTATION_ADD_FEATURE](state, { feature }) {
+    [m.PROJECTS_ANNOTATION_ADD_FEATURE](state, {feature}) {
         console.log(state);
         console.log(feature);
         state.annotation.features.push(feature);
@@ -240,15 +248,14 @@ const mutations = {
 };
 
 const actions = {
-    [a.PROJECTS_FETCH_ANNOTATION]: async ({ state, commit }) => {
+    [a.PROJECTS_FETCH_ANNOTATION]: async ({state, commit}) => {
         commit(m.PROJECTS_FETCHING);
 
         return backend.annotations.get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
             .then(res => {
                 if (res == undefined &&
                     res.data == undefined &&
-                    res.data.features == undefined)
-                {
+                    res.data.features == undefined) {
                     commit(m.PROJECTS_ADD_EMPTY_ANNOTATION);
                     return;
                 }
@@ -267,7 +274,7 @@ const actions = {
                 throw err;
             });
     },
-    [a.PROJECTS_POST_ANNOTATION]: async ({ state, commit }, { annotation }) => {
+    [a.PROJECTS_POST_ANNOTATION]: async ({state, commit}, {annotation}) => {
         commit(m.PROJECTS_FETCHING);
         console.log('ACTION POST ANNOTATION');
 
@@ -280,11 +287,11 @@ const actions = {
                 throw err;
             });
     },
-    [a.PROJECTS_FETCH_DIMENSIONS]: async ({ state, commit }) => {
+    [a.PROJECTS_FETCH_DIMENSIONS]: async ({state, commit}) => {
         return backend.dimensions
             .get(state.activeProjectId, state.activeStudyId, state.activeSerieId)
             .then(res => {
-                commit(m.PROJECTS_SET_DIMENSIONS, { width: res.width, height: res.height });
+                commit(m.PROJECTS_SET_DIMENSIONS, {width: res.width, height: res.height});
                 return res;
             })
             .catch(err => {

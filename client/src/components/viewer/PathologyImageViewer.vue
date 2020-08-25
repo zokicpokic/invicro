@@ -43,7 +43,8 @@ export default {
       "activeGeometry",
       "mldContent",
       "mldType",
-      "classes"
+      "classes",
+      "classChanged"
     ]),
   },
   watch: {
@@ -66,10 +67,15 @@ export default {
               .getFormat()
               .readFeatures(JSON.stringify(val))
       );
+      this.sourceAnnotations.changed();
     },
     activeGeometry(newValue, oldValue) {
       console.log(`Updating from ${oldValue} to ${newValue}`);
       this.addInteractions();
+    },
+    classChanged(newValue, oldValue) {
+      console.log(`Updating from ${oldValue} to ${newValue}`);
+      this.sourceAnnotations.changed();
     }
   },
   mounted: function () {
@@ -182,7 +188,7 @@ export default {
       if (cls) {
         let currClass = this.classes.find(c => c.name == cls);
         if (currClass) {
-          retStyle = new Style({
+          retStyle = currClass.isVisible ? new Style({
             stroke: new Stroke({
               color: currClass.strokeColor,
               width: 2,
@@ -190,6 +196,8 @@ export default {
             fill: new Fill({
               color: currClass.fillColor,
             }),
+          }) : new Style({
+            visibility: 'hidden'
           });
           return retStyle;
         }

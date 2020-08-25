@@ -21,7 +21,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" text @click="show = false">Close</v-btn>
+        <v-btn color="blue darken-1" text @click="onClose">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -29,43 +29,55 @@
 
 <script>
 import * as m from '../store/mutation_types';
-import { mapGetters } from 'vuex';
+import {mapGetters} from 'vuex';
 import Class from './Class';
+import * as a from "@/store/action_types";
 
 export default {
-    props: ["visible"],
-    data: () => ({
-
-    }),
-    components: {
-        Class
-    },
-    computed: {
-        ...mapGetters([
-            'classes',
-            'activeClassName',
-            'activeClass'
-            ]),
-        show: {
-            get() {
-                return this.visible;
-            },
-            set(value) {
-                if (!value) {
-                    this.$emit("close");
-                }
-            },
+  props: ["visible"],
+  data: () => ({}),
+  components: {
+    Class
+  },
+  computed: {
+    ...mapGetters([
+      'classes',
+      'activeClassName',
+      'activeClass',
+      'annotation'
+    ]),
+    show: {
+      get() {
+        return this.visible;
+      },
+      set(value) {
+        if (!value) {
+          this.$emit("close");
         }
-    },
-    methods: {
-        onSelectionChange: function (val) {
-            console.log(val);
-            const cl = this.classes[val];
-            console.log(cl.name);
-            if (cl) {
-                this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, { name: cl.name });
-            }
-        }
+      },
     }
+  },
+  methods: {
+    onSelectionChange: function (val) {
+      console.log(val);
+      const cl = this.classes[val];
+      console.log(cl.name);
+      if (cl) {
+        this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, {name: cl.name});
+      }
+    },
+    onClose: async function () {
+      this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+        annotation: this.annotation,
+      })
+          .then(() => {
+          })
+          .catch((e) => {
+            console.log("error fetching data");
+            console.log(e);
+          });
+      this.show = false;
+    }
+  }
 };
 </script>
