@@ -70,18 +70,18 @@ export default {
           name: "Ellipse",
           icon: "mdi-vector-ellipse",
         },
-        {
+        /*{
           name: "Circle",
           icon: "mdi-vector-circle",
-        },
+        },*/
         {
           name: "Rectangle",
           icon: "mdi-vector-rectangle",
-        },
+        }/*,
         {
           name: "Square",
           icon: "mdi-vector-square",
-        },
+        }*/,
       ],
     };
   },
