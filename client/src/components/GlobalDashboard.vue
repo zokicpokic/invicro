@@ -53,6 +53,8 @@ import NewClassSettings from "@/components/NewClassSettings";
 import { mapGetters } from "vuex";
 import * as m from "../store/mutation_types";
 import * as a from "../store/action_types";
+import axios from "axios";
+import constants from "@/utils/constants";
 
 export default {
   name: "global-dashboard",
@@ -127,6 +129,16 @@ export default {
     },
   },
   async created() {
+    let Settings;
+    await axios.get('configuration.json').then(response => (Settings = response.data));
+
+    for (var i in constants) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (Settings.hasOwnProperty(i)) {
+        constants[i] = Settings[i];
+      }
+    }
+    Object.freeze(constants);
     await Promise.all(
       [
         //TO DO WAIT FOR DEFAULT FETCH MODEL
