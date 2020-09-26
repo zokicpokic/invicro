@@ -59,6 +59,48 @@
               v-model="itemVisible">
       Show
     </v-switch>
+    <v-dialog
+        v-model="dialog"
+        width="500"
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn icon :disabled="itemActive" v-bind="attrs"
+               v-on="on">
+          <v-icon large>mdi-delete
+          </v-icon>
+        </v-btn>
+      </template>
+
+      <v-card>
+        <v-card-title class="headline grey lighten-2">
+          Confirm delete
+        </v-card-title>
+
+        <v-card-text>
+          Are you sure you want to delete class and all its features?
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+              color="primary"
+              text
+              @click="dialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+              color="primary"
+              text
+              @click="onDeleteClass"
+          >
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script>
@@ -69,7 +111,9 @@ export default {
   name: 'Class',
   props: ["className"],
   data: function () {
-    return {};
+    return {
+      dialog: false
+    };
   },
   computed: {
     ...mapGetters([
@@ -148,6 +192,9 @@ export default {
       if (cl) {
         this.$store.commit(m.PROJECTS_SET_ACTIVE_CLASS, {name: cl.name});
       }
+    },
+    onDeleteClass: function () {
+      this.$store.commit(m.PROJECTS_DELETE_CLASS, {name: this.className});
     }
   }
 };

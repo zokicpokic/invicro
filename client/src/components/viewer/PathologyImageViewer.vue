@@ -75,6 +75,13 @@ export default {
     },
     classChanged(newValue, oldValue) {
       console.log(`Updating from ${oldValue} to ${newValue}`);
+      this.sourceAnnotations.clear();
+      this.sourceAnnotations.addFeatures(
+          this.sourceAnnotations
+              .getFormat()
+              .readFeatures(JSON.stringify(this.annotation))
+      );
+
       this.sourceAnnotations.changed();
     }
   },

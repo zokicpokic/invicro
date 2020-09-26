@@ -231,6 +231,12 @@ const mutations = {
             // if class exists, delete it
             state.annotation.classes.splice(index, 1);
         }
+
+        state.annotation.features = state.annotation.features.filter(function (obj) {
+            return obj.properties.class !== name;
+        });
+
+        Vue.set(state, 'classChanged', !state.classChanged);
     },
     [m.PROJECTS_ADD_EMPTY_ANNOTATION](state) {
         state.fetching = false;
