@@ -15,6 +15,7 @@ const routes = [
 
     },
     {
+        name: 'file',
         path: '/:projectId/:studyId/:serieId',
         component: GlobalDashboard // Alternative: component: require("./components/GlobalDashboard.vue").default
     }
