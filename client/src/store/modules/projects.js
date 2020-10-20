@@ -36,7 +36,8 @@ const state = {
     annotation: getEmptyAnnotation(),
     imageWidth: undefined,
     imageHeight: undefined,
-    classChanged: false
+    classChanged: false,
+    files: []
 };
 
 const getters = {
@@ -54,7 +55,8 @@ const getters = {
     mldContent: state => state.mldContent,
     mldType: state => state.mldType,
     activeClass: (state, getters) => getters.classes ? getters.classes.find(x => x.name === state.activeClassName) : undefined,
-    classChanged: state => state.classChanged
+    classChanged: state => state.classChanged,
+    files: state => state.files
 };
 
 const mutations = {
@@ -250,6 +252,10 @@ const mutations = {
         console.log(state);
         console.log(feature);
         state.annotation.features.push(feature);
+    },
+    [m.PROJECTS_SET_FILES](state, files) {
+        console.log(files);
+        state.files = files;
     }
 };
 
@@ -301,6 +307,20 @@ const actions = {
                 return res;
             })
             .catch(err => {
+                throw err;
+            });
+    },
+    [a.PROJECTS_FETCH_FILES]: async ({state, commit}) => {
+        console.log('ACTION POST ANNOTATION');
+
+        return backend.files
+            .get(state.activeProjectId, state.activeStudyId, "")
+            .then(res => {
+                commit(m.PROJECTS_SET_FILES, res);
+                return res;
+            })
+            .catch(err => {
+                console.log(err);
                 throw err;
             });
     }

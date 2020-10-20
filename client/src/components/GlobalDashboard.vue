@@ -2,9 +2,11 @@
 
 
 <template>
-  <div>
-    <!--<v-card color="grey" tile>-->
-    <v-toolbar dense :dark="true">
+  <v-container fluid pa-0>
+    <v-row no-gutters>
+      <v-col cols="12">
+
+    <v-toolbar dense flat :dark="true">
       <v-toolbar-title></v-toolbar-title>
       <v-btn v-on:click="showNewClass" icon>
         <v-icon>mdi-briefcase-plus-outline</v-icon>
@@ -26,7 +28,7 @@
       <v-spacer></v-spacer>
     </v-toolbar>
 
-    <v-toolbar dense :dark="false">
+    <v-toolbar dense flat :dark="false">
       <v-toolbar-title></v-toolbar-title>
       <v-btn-toggle v-model="selectedGeometry" mandatory>
         <v-btn v-for="item in geometries" :key="item.name">
@@ -35,14 +37,23 @@
       </v-btn-toggle>
       <v-spacer></v-spacer>
     </v-toolbar>
-    <!--</v-card>-->
-    <v-main>
-      <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
-      <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
-      <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
-      <pathology-image-viewer />
-    </v-main>
-  </div>
+
+        <v-row no-gutters>
+            <v-col cols="2">
+                <img-list></img-list>
+            </v-col>
+            <v-col cols="10">
+
+
+                    <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
+                    <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
+                    <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
+                    <pathology-image-viewer />
+            </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -50,6 +61,7 @@ import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
 import NewClassSettings from "@/components/NewClassSettings";
+import ImgList from "./ImgList";
 import { mapGetters } from "vuex";
 import * as m from "../store/mutation_types";
 import * as a from "../store/action_types";
@@ -116,6 +128,7 @@ export default {
     AnnotationSettings,
     ClassSettings,
     NewClassSettings,
+    ImgList
   },
   methods: {
     addFearure: function () {
@@ -131,25 +144,28 @@ export default {
   async created() {
     let Settings;
     await axios.get('configuration.json').then(response => (Settings = response.data));
+    console.log(Settings);
 
     for (var i in constants) {
       // eslint-disable-next-line no-prototype-builtins
       if (Settings.hasOwnProperty(i)) {
-        constants[i] = Settings[i];
+        //constants[i] = Settings[i];
+        console.log(Settings[i]);
+        console.log(constants[i]);
       }
     }
-    Object.freeze(constants);
-    await Promise.all(
-      [
-        //TO DO WAIT FOR DEFAULT FETCH MODEL
-      ].map((p) => p.catch((e) => console.log(e)))
-    );
+    // Object.freeze(constants);
+    // await Promise.all(
+    //   [
+    //     //TO DO WAIT FOR DEFAULT FETCH MODEL
+    //   ].map((p) => p.catch((e) => console.log(e)))
+    // );
   },
 };
 </script>
 
 <style scoped>
-td {
+/* td {
   vertical-align: middle !important;
 }
 
@@ -179,5 +195,5 @@ td:first-child {
 
 .fas.fa-info-circle {
   cursor: pointer;
-}
+} */
 </style>
