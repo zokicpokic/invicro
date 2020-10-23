@@ -6,50 +6,50 @@
     <v-row no-gutters>
       <v-col cols="12">
 
-    <v-toolbar dense flat :dark="true">
-      <v-toolbar-title></v-toolbar-title>
-      <v-btn v-on:click="showNewClass" icon>
-        <v-icon>mdi-briefcase-plus-outline</v-icon>
-      </v-btn>
-      <!--<v-btn v-on:click="addFearure" icon>
-        <v-icon>mdi-puzzle-edit-outline</v-icon>
-      </v-btn>-->
-      <v-btn disabled icon>
-        <v-icon>mdi-reply</v-icon>
-      </v-btn>
-      <v-btn disabled icon>
-        <v-icon>mdi-share</v-icon>
-      </v-btn>
-      <v-btn v-on:click="showClasses" icon>
-        <v-icon>mdi-set-right</v-icon>
-      </v-btn>
-      <p>{{ activeClassName }}</p>
-      <!--<v-switch label="Display MLD File" color="primary" value="red" hide-details></v-switch>-->
-      <v-spacer></v-spacer>
-    </v-toolbar>
+        <v-toolbar dense flat :dark="true">
+          <v-toolbar-title></v-toolbar-title>
+          <v-btn v-on:click="showNewClass" icon>
+            <v-icon>mdi-briefcase-plus-outline</v-icon>
+          </v-btn>
+          <!--<v-btn v-on:click="addFearure" icon>
+            <v-icon>mdi-puzzle-edit-outline</v-icon>
+          </v-btn>-->
+          <v-btn :disabled="!canUndo" v-on:click="performUndo" icon>
+            <v-icon>mdi-reply</v-icon>
+          </v-btn>
+          <v-btn :disabled="!canRedo" v-on:click="performRedo" icon>
+            <v-icon>mdi-share</v-icon>
+          </v-btn>
+          <v-btn v-on:click="showClasses" icon>
+            <v-icon>mdi-set-right</v-icon>
+          </v-btn>
+          <p>{{ activeClassName }}</p>
+          <!--<v-switch label="Display MLD File" color="primary" value="red" hide-details></v-switch>-->
+          <v-spacer></v-spacer>
+        </v-toolbar>
 
-    <v-toolbar dense flat :dark="false">
-      <v-toolbar-title></v-toolbar-title>
-      <v-btn-toggle v-model="selectedGeometry" mandatory>
-        <v-btn v-for="item in geometries" :key="item.name">
-          <v-icon>{{ item.icon }}</v-icon>
-        </v-btn>
-      </v-btn-toggle>
-      <v-spacer></v-spacer>
-    </v-toolbar>
+        <v-toolbar dense flat :dark="false">
+          <v-toolbar-title></v-toolbar-title>
+          <v-btn-toggle v-model="selectedGeometry" mandatory>
+            <v-btn v-for="item in geometries" :key="item.name">
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-btn>
+          </v-btn-toggle>
+          <v-spacer></v-spacer>
+        </v-toolbar>
 
         <v-row no-gutters>
-            <v-col cols="2">
-                <img-list></img-list>
-            </v-col>
-            <v-col cols="10">
+          <v-col cols="2">
+            <img-list></img-list>
+          </v-col>
+          <v-col cols="10">
 
 
-                    <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
-                    <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
-                    <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
-                    <pathology-image-viewer />
-            </v-col>
+            <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false"/>
+            <ClassSettings :visible="showClassSettings" @close="showClassSettings=false"/>
+            <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false"/>
+            <pathology-image-viewer/>
+          </v-col>
         </v-row>
       </v-col>
     </v-row>
@@ -62,7 +62,7 @@ import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
 import NewClassSettings from "@/components/NewClassSettings";
 import ImgList from "./ImgList";
-import { mapGetters } from "vuex";
+import {mapGetters} from "vuex";
 import * as m from "../store/mutation_types";
 import * as a from "../store/action_types";
 import axios from "axios";
@@ -100,7 +100,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["annotation", "activeGeometry", "activeClassName"]),
+    ...mapGetters(["annotation", "activeGeometry", "activeClassName", "canUndo", "canRedo"]),
     selectedGeometry: {
       get: function () {
         return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
@@ -115,11 +115,12 @@ export default {
         });
 
         await Promise.all([f])
-          .then(() => {})
-          .catch((e) => {
-            console.log("error fetcing activeGeometry data");
-            console.log(e);
-          });
+            .then(() => {
+            })
+            .catch((e) => {
+              console.log("error fetcing activeGeometry data");
+              console.log(e);
+            });
       },
     },
   },
@@ -140,6 +141,12 @@ export default {
     showNewClass: function () {
       this.showNewClassSettings = true;
     },
+    performUndo: function() {
+      this.$store.commit(m.ANNOTATIONS_PERFORM_UNDO);
+    },
+    performRedo: function() {
+      this.$store.commit(m.ANNOTATIONS_PERFORM_REDO);
+    }
   },
   async created() {
     let Settings;
