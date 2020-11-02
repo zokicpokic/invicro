@@ -11,7 +11,11 @@
               <v-text-field
                   placeholder="class name"
                   v-model="name"
-                  label="Enter Class Name">
+                  label="Enter Class Name"
+                  :rules="[
+                    () => !!name || 'This field is required',
+                    () => !!name && validateClassName() || 'This name already exists.'
+                  ]">
               </v-text-field>
             </v-col>
           </v-row>
@@ -152,7 +156,7 @@ export default {
       },
     },
     okDisabled: function () {
-      return this.name === undefined || this.name === '';
+      return this.name === undefined || this.name === '' || !this.validateClassName();
     }
   },
   methods: {
@@ -185,6 +189,9 @@ export default {
           });
       this.show = false;
     },
+    validateClassName: function () {
+        return !this.classes || !this.classes.some(c => c.name.toLowerCase() == this.name.toLowerCase());
+    }
   },
 };
 </script>

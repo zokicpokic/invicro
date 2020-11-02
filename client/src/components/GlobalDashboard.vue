@@ -1,62 +1,65 @@
-<!-- Copyright (c) 2020-. Authors: see NOTICE file.-->
-
-
 <template>
   <v-container fluid pa-0>
     <v-row no-gutters>
       <v-col cols="12">
 
-    <v-toolbar dense flat :dark="true">
-      <v-toolbar-title></v-toolbar-title>
-      <v-btn v-on:click="showNewClass" icon>
-        <v-icon>mdi-briefcase-plus-outline</v-icon>
-      </v-btn>
-      <!--<v-btn v-on:click="addFearure" icon>
-        <v-icon>mdi-puzzle-edit-outline</v-icon>
-      </v-btn>-->
-      <v-btn disabled icon>
-        <v-icon>mdi-reply</v-icon>
-      </v-btn>
-      <v-btn disabled icon>
-        <v-icon>mdi-share</v-icon>
-      </v-btn>
-      <v-btn v-on:click="showClasses" icon>
-        <v-icon>mdi-set-right</v-icon>
-      </v-btn>
-      <p>{{ activeClassName }}</p>
-      <!--<v-switch label="Display MLD File" color="primary" value="red" hide-details></v-switch>-->
-      <v-spacer></v-spacer>
-    </v-toolbar>
+        <v-toolbar dense flat :dark="true">
+          <v-toolbar-title></v-toolbar-title>
+          <v-btn v-on:click="showNewClass" icon>
+            <v-icon>mdi-briefcase-plus-outline</v-icon>
+          </v-btn>
+          <!--<v-btn v-on:click="addFearure" icon>
+            <v-icon>mdi-puzzle-edit-outline</v-icon>
+          </v-btn>-->
+          <v-btn disabled icon>
+            <v-icon>mdi-reply</v-icon>
+          </v-btn>
+          <v-btn disabled icon>
+            <v-icon>mdi-share</v-icon>
+          </v-btn>
+          <v-btn v-on:click="showClasses" icon>
+            <v-icon>mdi-set-right</v-icon>
+          </v-btn>
+          <p>{{ activeClassName }}</p>
+          <!--<v-switch label="Display MLD File" color="primary" value="red" hide-details></v-switch>-->
+          <v-spacer></v-spacer>
+        </v-toolbar>
 
-    <v-toolbar dense flat :dark="false">
-      <v-toolbar-title></v-toolbar-title>
-      <v-btn-toggle v-model="selectedGeometry" mandatory>
-        <v-btn v-for="item in geometries" :key="item.name">
-          <v-icon>{{ item.icon }}</v-icon>
-        </v-btn>
-      </v-btn-toggle>
-      <v-spacer></v-spacer>
-    </v-toolbar>
+        <v-toolbar dense flat :dark="false">
+          <v-toolbar-title></v-toolbar-title>
+          <v-btn-toggle v-model="selectedGeometry" mandatory>
+            <v-btn v-for="item in geometries" :key="item.name">
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-btn>
+          </v-btn-toggle>
+          <v-divider class="mx-4" vertical></v-divider>
+          <contrast-brightness-settings v-model="contrastVal" :title="'CONTRAST SETTINGS'" :icon="'mdi-contrast-circle'" />
+          <contrast-brightness-settings v-model="brightnessVal" :title="'BRIGHTNESS SETTINGS'" :icon="'mdi-brightness-6'" />
+          <v-btn elevation="0" class="toolbar-btn">
+            <v-icon>mdi-palette</v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-toolbar>
 
         <v-row no-gutters>
-            <v-col cols="2">
-                <img-list></img-list>
-            </v-col>
-            <v-col cols="10">
-
-
-                    <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
-                    <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
-                    <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
-                    <pathology-image-viewer />
-            </v-col>
+          <v-col cols="2">
+            <img-list></img-list>
+          </v-col>
+          <v-col cols="10">
+            <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
+            <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
+            <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
+            <pathology-image-viewer />
+          </v-col>
         </v-row>
+
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import ContrastBrightnessSettings from "./ContrastBrightnessSettings";
 import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
@@ -100,7 +103,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["annotation", "activeGeometry", "activeClassName"]),
+    ...mapGetters(["annotation", "activeGeometry", "activeClassName", 'brightness', 'contrast']),
     selectedGeometry: {
       get: function () {
         return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
@@ -122,13 +125,30 @@ export default {
           });
       },
     },
+    contrastVal: {
+        get: function () {
+            return this.contrast;
+        },
+        set: function (value) {
+            this.$store.commit(m.PROJECTS_SET_CONTRAST, value);
+        }
+    },
+    brightnessVal: {
+        get: function () {
+            return this.brightness;
+        },
+        set: function (value) {
+            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value);
+        }
+    }
   },
   components: {
     PathologyImageViewer,
     AnnotationSettings,
     ClassSettings,
     NewClassSettings,
-    ImgList
+    ImgList,
+    ContrastBrightnessSettings
   },
   methods: {
     addFearure: function () {
@@ -165,6 +185,15 @@ export default {
 </script>
 
 <style scoped>
+.toolbar-btn {
+  min-width: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
 /* td {
   vertical-align: middle !important;
 }

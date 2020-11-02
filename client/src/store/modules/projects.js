@@ -37,7 +37,9 @@ const state = {
     imageWidth: undefined,
     imageHeight: undefined,
     classChanged: false,
-    files: []
+    files: [],
+    contrast: 50,
+    brightness: 50
 };
 
 const getters = {
@@ -56,7 +58,9 @@ const getters = {
     mldType: state => state.mldType,
     activeClass: (state, getters) => getters.classes ? getters.classes.find(x => x.name === state.activeClassName) : undefined,
     classChanged: state => state.classChanged,
-    files: state => state.files
+    files: state => state.files,
+    contrast: state => state.contrast,
+    brightness: state => state.brightness
 };
 
 const mutations = {
@@ -256,6 +260,12 @@ const mutations = {
     [m.PROJECTS_SET_FILES](state, files) {
         console.log(files);
         state.files = files;
+    },
+    [m.PROJECTS_SET_CONTRAST](state, contrast) {
+        state.contrast = contrast;
+    },
+    [m.PROJECTS_SET_BRIGHTNESS](state, brightness) {
+        state.brightness = brightness;
     }
 };
 
