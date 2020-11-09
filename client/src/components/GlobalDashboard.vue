@@ -141,11 +141,33 @@ export default {
     showNewClass: function () {
       this.showNewClassSettings = true;
     },
-    performUndo: function() {
+    performUndo: async function() {
       this.$store.commit(m.ANNOTATIONS_PERFORM_UNDO);
+      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+        annotation: this.annotation,
+      });
+
+      await Promise.all([f])
+          .then(() => {
+          })
+          .catch((e) => {
+            console.log("error fetching activeGeometry data");
+            console.log(e);
+          });
     },
-    performRedo: function() {
+    performRedo: async function() {
       this.$store.commit(m.ANNOTATIONS_PERFORM_REDO);
+      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+        annotation: this.annotation,
+      });
+
+      await Promise.all([f])
+          .then(() => {
+          })
+          .catch((e) => {
+            console.log("error fetching activeGeometry data");
+            console.log(e);
+          });
     }
   },
   async created() {

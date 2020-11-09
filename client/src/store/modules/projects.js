@@ -68,6 +68,8 @@ const mutations = {
         state.activeProjectId = projectId;
         state.activeStudyId = studyId;
         state.activeSerieId = serieId;
+        state.recordedStack = [];
+        state.currentRecordedIndex = -1
     },
     [m.PROJECTS_FETCHING](state) {
         state.fetching = true;
@@ -181,8 +183,8 @@ const mutations = {
             //push current annotation
             state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
             state.currentRecordedIndex = 0;
-        } else if(state.currentRecordedIndex < state.recordedStack.length -1)   {
-            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length - 1);
+        } else if (state.currentRecordedIndex < state.recordedStack.length - 1) {
+            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length);
         }
         let index = state.annotation.classes.map(e => e.name).indexOf(name);
         if (index >= 0) {
@@ -216,8 +218,8 @@ const mutations = {
             //push current annotation
             state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
             state.currentRecordedIndex = 0;
-        } else if(state.currentRecordedIndex < state.recordedStack.length -1)   {
-            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length - 1);
+        } else if (state.currentRecordedIndex < state.recordedStack.length - 1) {
+            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length);
         }
 
         let index = state.annotation.classes.map(e => e.name).indexOf(name);
@@ -244,8 +246,8 @@ const mutations = {
             //push current annotation
             state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
             state.currentRecordedIndex = 0;
-        } else if(state.currentRecordedIndex < state.recordedStack.length -1)   {
-            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length - 1);
+        } else if (state.currentRecordedIndex < state.recordedStack.length - 1) {
+            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length);
         }
 
         let index = state.annotation.classes.map(e => e.name).indexOf(name);
@@ -269,14 +271,37 @@ const mutations = {
             //push current annotation
             state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
             state.currentRecordedIndex = 0;
-        } else if(state.currentRecordedIndex < state.recordedStack.length -1)   {
-            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length - 1);
+        } else if (state.currentRecordedIndex < state.recordedStack.length - 1) {
+            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length);
         }
 
         let index = state.annotation.classes.map(e => e.name).indexOf(name);
         if (index >= 0) {
             // if class exists, delete it
             state.annotation.classes.splice(index, 1);
+        }
+
+        state.annotation.features = state.annotation.features.filter(function (obj) {
+            return obj.properties.class !== name;
+        });
+
+        state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
+        state.currentRecordedIndex = state.recordedStack.length - 1;
+
+        Vue.set(state, 'classChanged', !state.classChanged);
+    },
+    [m.PROJECTS_DELETE_FEATURES_OF_CLASS](state, {name}) {
+        if (state.annotation === undefined)
+            return;
+        if (state.annotation.classes == undefined)
+            return;
+
+        if (state.currentRecordedIndex === -1) {
+            //push current annotation
+            state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
+            state.currentRecordedIndex = 0;
+        } else if (state.currentRecordedIndex < state.recordedStack.length - 1) {
+            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length);
         }
 
         state.annotation.features = state.annotation.features.filter(function (obj) {
@@ -303,8 +328,8 @@ const mutations = {
             //push current annotation
             state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
             state.currentRecordedIndex = 0;
-        } else if(state.currentRecordedIndex < state.recordedStack.length -1)   {
-            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length - 1);
+        } else if (state.currentRecordedIndex < state.recordedStack.length - 1) {
+            state.recordedStack.splice(state.currentRecordedIndex + 1, state.recordedStack.length);
         }
         state.annotation.features.push(feature);
         state.recordedStack.push(JSON.parse(JSON.stringify(state.annotation)));
@@ -316,20 +341,32 @@ const mutations = {
     },
     [m.ANNOTATIONS_PERFORM_UNDO](state) {
         if (state.currentRecordedIndex > 0) {
-            const undoAnnotation = state.recordedStack[state.currentRecordedIndex - 1];
+            const undoAnnotation = JSON.parse(JSON.stringify(state.recordedStack[state.currentRecordedIndex - 1]));
             state.currentRecordedIndex -= 1;
-            //Vue.set(state, 'annotation', null);
+
+            if (!undoAnnotation.activeClass) {
+                undoAnnotation.activeClass = getDefaultClass();
+            }
+            if (!undoAnnotation.activeClassName) {
+                undoAnnotation.activeClassName = 'Default';
+            }
             Vue.set(state, 'activeGeometry', undoAnnotation.activeGeometry);
             Vue.set(state, 'activeClass', undoAnnotation.activeClass);
             Vue.set(state, 'activeClassName', undoAnnotation.activeClassName);
             Vue.set(state, 'annotation', undoAnnotation);
         }
-        //Vue.set(state, 'classChanged', !state.classChanged);
     },
     [m.ANNOTATIONS_PERFORM_REDO](state) {
         if (state.currentRecordedIndex <= state.recordedStack.length - 2) {
-            const redoAnnotation = state.recordedStack[state.currentRecordedIndex + 1];
+            const redoAnnotation = JSON.parse(JSON.stringify(state.recordedStack[state.currentRecordedIndex + 1]));
             state.currentRecordedIndex += 1;
+
+            if (!redoAnnotation.activeClass) {
+                redoAnnotation.activeClass = getDefaultClass();
+            }
+            if (!redoAnnotation.activeClassName) {
+                redoAnnotation.activeClassName = 'Default';
+            }
             Vue.set(state, 'activeGeometry', redoAnnotation.activeGeometry);
             Vue.set(state, 'activeClassName', redoAnnotation.activeClassName);
             Vue.set(state, 'activeClass', redoAnnotation.activeClass);
@@ -357,7 +394,11 @@ const actions = {
                 } else if (res.type == 'json') {
                     console.log('json type set');
                     commit(m.PROJECTS_SET_ANNOTATION, res.data);
+                } else if (!res.type) {
+                    commit(m.PROJECTS_SET_ANNOTATION, getEmptyAnnotation());
+                    return;
                 }
+
                 return res;
             })
             .catch(err => {
