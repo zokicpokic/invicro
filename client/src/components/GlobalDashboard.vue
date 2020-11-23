@@ -11,10 +11,10 @@
           <!--<v-btn v-on:click="addFearure" icon>
             <v-icon>mdi-puzzle-edit-outline</v-icon>
           </v-btn>-->
-          <v-btn disabled icon>
+          <v-btn :disabled="!canUndo" v-on:click="performUndo" icon>
             <v-icon>mdi-reply</v-icon>
           </v-btn>
-          <v-btn disabled icon>
+          <v-btn :disabled="!canRedo" v-on:click="performRedo" icon>
             <v-icon>mdi-share</v-icon>
           </v-btn>
           <v-btn v-on:click="showClasses" icon>
@@ -60,10 +60,10 @@
                   </v-list-item>
                 </v-navigation-drawer>
                 <img-list v-show="showDrawer"></img-list>
-
               </v-row>
             </v-navigation-drawer>
           </v-card>
+
           <v-col>
             <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
             <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
@@ -84,7 +84,7 @@ import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
 import NewClassSettings from "@/components/NewClassSettings";
 import ImgList from "./ImgList";
-import { mapGetters } from "vuex";
+import {mapGetters} from "vuex";
 import * as m from "../store/mutation_types";
 import * as a from "../store/action_types";
 import axios from "axios";
@@ -124,7 +124,15 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["annotation", "activeGeometry", "activeClassName", 'brightness', 'contrast']),
+    ...mapGetters([
+        "annotation",
+        "activeGeometry",
+        "activeClassName",
+        "canUndo",
+        "canRedo",
+        "brightness",
+        "contrast"
+    ]),
     selectedGeometry: {
       get: function () {
         return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
@@ -139,11 +147,12 @@ export default {
         });
 
         await Promise.all([f])
-          .then(() => {})
-          .catch((e) => {
-            console.log("error fetcing activeGeometry data");
-            console.log(e);
-          });
+            .then(() => {
+            })
+            .catch((e) => {
+              console.log("error fetcing activeGeometry data");
+              console.log(e);
+            });
       },
     },
     contrastVal: {
@@ -181,6 +190,34 @@ export default {
     showNewClass: function () {
       this.showNewClassSettings = true;
     },
+    performUndo: async function() {
+      this.$store.commit(m.ANNOTATIONS_PERFORM_UNDO);
+      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+        annotation: this.annotation,
+      });
+
+      await Promise.all([f])
+          .then(() => {
+          })
+          .catch((e) => {
+            console.log("error fetching activeGeometry data");
+            console.log(e);
+          });
+    },
+    performRedo: async function() {
+      this.$store.commit(m.ANNOTATIONS_PERFORM_REDO);
+      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+        annotation: this.annotation,
+      });
+
+      await Promise.all([f])
+          .then(() => {
+          })
+          .catch((e) => {
+            console.log("error fetching activeGeometry data");
+            console.log(e);
+          });
+    },
     resetContrast: function () {
         this.$store.commit(m.PROJECTS_RESET_CONTRAST);
     },
@@ -215,7 +252,7 @@ export default {
     }, 10000);
   },
   beforeDestroy: function () {
-      clearInterval(this.timer);
+    clearInterval(this.timer);
   }
 };
 </script>

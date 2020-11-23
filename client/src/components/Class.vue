@@ -77,7 +77,7 @@
         </v-card-title>
 
         <v-card-text>
-          Are you sure you want to delete class and all its features?
+          Are you sure you want to delete class {{ this.className }} and all its features?
         </v-card-text>
 
         <v-divider></v-divider>
@@ -101,6 +101,48 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+        v-model="dialog2"
+        width="500"
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn icon v-bind="attrs"
+               v-on="on">
+          <v-icon large>mdi-delete-empty-outline
+          </v-icon>
+        </v-btn>
+      </template>
+
+      <v-card>
+        <v-card-title class="headline grey lighten-2">
+          Confirm delete features
+        </v-card-title>
+
+        <v-card-text>
+          Are you sure you want to delete all features of {{ this.className }}?
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+              color="primary"
+              text
+              @click="dialog2 = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+              color="primary"
+              text
+              @click="onDeleteClassFeatures"
+          >
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script>
@@ -112,7 +154,8 @@ export default {
   props: ["className"],
   data: function () {
     return {
-      dialog: false
+      dialog: false,
+      dialog2: false
     };
   },
   computed: {
@@ -195,6 +238,11 @@ export default {
     },
     onDeleteClass: function () {
       this.$store.commit(m.PROJECTS_DELETE_CLASS, {name: this.className});
+      this.dialog = false;
+    },
+    onDeleteClassFeatures: function () {
+      this.$store.commit(m.PROJECTS_DELETE_FEATURES_OF_CLASS, {name: this.className});
+      this.dialog2 = false;
     }
   }
 };
