@@ -1,7 +1,10 @@
 <template>
-    <div>
-        <div id="mapOL" :style="{ height: this.mapHeight + 'px' }"></div>
+  <div style="width:100%; backgound-color:red" ref="mapContainer">
+    <div id="mapOL"
+       :style="{ height: this.mapHeight + 'px' }"
+       style="background-color:#f5f5f5">
     </div>
+  </div>
 </template>
 
 <script>
@@ -28,7 +31,9 @@ export default {
             dataDraw: null,
             dataSnap: null,
             featureColor: "#00000",
-            mapHeight: 600
+            mapHeight: 600,
+            mapWidth: 600,
+            resizeObserver: null
         };
     },
     computed: {
@@ -88,7 +93,7 @@ export default {
             if (this.dataMap) {
                 this.$nextTick(() => {
                     this.dataMap.updateSize();
-                    this.initView();
+                    this.resizeMap();
                 });
             }
         }
@@ -97,7 +102,21 @@ export default {
         this.$nextTick(() => {
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight();
+        });
+        this.resizeObserver = new  ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry.target === this.$refs.mapContainer  && this.mapWidth !== entry.contentRect.width) {
+                    this.mapWidth = entry.contentRect.width;
+                    if (this.dataMap) {
+                        this.$nextTick(() => {
+                            this.dataMap.updateSize();
+                            this.resizeMap();
+                        });
+                    }
+                }
+            }
         })
+        this.resizeObserver.observe(this.$refs.mapContainer);
         this.loadProject();
     },
     methods: {
@@ -128,7 +147,7 @@ export default {
                 -20026376.39 + ((2 * this.imageWidth) / MAX_EXTENTION) * 20026376.39,
                 20048966.1,
             ];
-            this.view = new View({
+            let view = new View({
                 center: [
                     (((2 * this.imageWidth) / MAX_EXTENTION) * 20026376.39) / 2,
                     (((2 * (MAX_EXTENTION - this.imageHeight)) / MAX_EXTENTION) *
@@ -139,7 +158,31 @@ export default {
                 maxZoom: maxZoomLevel - 1,
                 extent: extent,
             });
-            this.dataMap.setView(this.view);
+            this.dataMap.setView(view);
+        },
+        resizeMap: function () {
+            var maxZoomLevel = 
+                Math.floor(Math.max(this.imageWidth - 1, this.imageHeight - 1) / 256) + 1;
+            maxZoomLevel = Math.ceil(Math.log(maxZoomLevel) / Math.log(2)) + 1;
+            var maxResolution = Math.pow(2, maxZoomLevel - 1);
+            var MAX_EXTENTION = maxResolution * 256;
+
+            //calculate restricted extent
+            var extent = [
+                -20026376.39,
+                -20048966.1 +
+                ((2 * (MAX_EXTENTION - this.imageHeight)) / MAX_EXTENTION) * 20048966.1,
+                -20026376.39 + ((2 * this.imageWidth) / MAX_EXTENTION) * 20026376.39,
+                20048966.1,
+            ];
+            let view = this.dataMap.getView();
+            let newView = new View({
+                center: view.getCenter(),
+                zoom: view.getZoom(),
+                maxZoom: maxZoomLevel - 1,
+                extent: extent,
+            });
+            this.dataMap.setView(newView);
         },
         addInteractions: function () {
             if (this.dataDraw) {
@@ -330,6 +373,7 @@ export default {
     },
     beforeDestroy: function () {
         window.removeEventListener('resize', this.getWindowHeight);
+        this.resizeObserver.unobserve(this.$refs.mapContainer);
     }
 };
 </script>

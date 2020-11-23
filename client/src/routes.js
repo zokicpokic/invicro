@@ -6,13 +6,13 @@ import VueRouter from 'vue-router';
 
 // Import Components
 import GlobalDashboard from './components/GlobalDashboard.vue';
-import PathologyImgHome from './components/PathologyImgHome.vue'
+//import PathologyImgHome from './components/PathologyImgHome.vue'
 // Define routes
 const routes = [
     {
-        path: "/",
-        component: PathologyImgHome
-
+        name: 'main',
+        path: '/',
+        component: GlobalDashboard
     },
     {
         name: 'file',

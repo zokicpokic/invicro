@@ -15,6 +15,8 @@
         </template>
         <template v-slot:append>
           <v-icon @click="sliderValue++">mdi-plus</v-icon>
+          <v-spacer class="ma-2"></v-spacer>
+          <v-icon @click="$emit('reset')">mdi-redo-variant</v-icon>
         </template>
       </v-slider>
     </v-card>
