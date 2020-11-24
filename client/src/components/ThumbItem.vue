@@ -1,10 +1,10 @@
 <template>
-    <v-card flat hover class="thumb-card pa-0 my-2">
-        <router-link :to="{ name: 'file', params: {projectId, studyId, serieId}}">
-            <v-img contain :src="img"></v-img>
-            <div class="link-text mt-2">{{serieId}}</div>
-        </router-link>
-    </v-card>
+  <v-card flat hover class="thumb-card pa-0 my-2" :class="{'thumb-card-selected' : isSelected}">
+    <router-link :to="{ name: 'file', params: {projectId, studyId, serieId}}">
+      <v-img contain :src="img"></v-img>
+      <div class="link-text mt-2" :class="{'link-text-selected' : isSelected}">{{serieId}}</div>
+    </router-link>
+  </v-card>
 </template>
 
 <script>
@@ -22,21 +22,26 @@ export default {
     computed: {
         projectId: function () {
             if (this.file) {
-                return this.file.split("/")[0];
+                return this.file.split("/")[2];
             }
             return "";
         },
         studyId: function () {
             if (this.file) {
-                return this.file.split("/")[1];
+                return this.file.split("/")[3];
             }
             return "";
         },
         serieId: function () {
             if (this.file) {
-                return this.file.split("/")[2].replace(/\.[^/.]+$/, "");
+                return this.file.split("/")[4].replace(/\.[^/.]+$/, "");
             }
             return "";
+        },
+        isSelected: function () {
+            return this.$route.params.projectId === this.projectId &&
+                this.$route.params.studyId === this.studyId &&
+                this.$route.params.serieId === this.serieId;
         }
     },
     mounted: function () {
@@ -58,16 +63,25 @@ export default {
 
 <style>
 .thumb-card {
-    width: 100%;
+  width: 100%;
+  background-color: transparent !important;
 }
 .thumb-card:hover {
-    opacity: 0.7;
+  opacity: 0.6;
+}
+.thumb-card-selected {
+  opacity: 0.6;
 }
 .link-text {
-    text-align: center;
-    color:black;
+  text-align: center;
+  color: black;
+  background-color: transparent !important;
+}
+.link-text-selected {
+  color: rgba(0,60,136,1);
 }
 a {
-    text-decoration: none !important;
+  text-decoration: none !important;
+  background-color: transparent !important;
 }
 </style>

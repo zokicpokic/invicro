@@ -1,6 +1,3 @@
-<!-- Copyright (c) 2020-. Authors: see NOTICE file.-->
-
-
 <template>
   <v-container fluid pa-0>
     <v-row no-gutters>
@@ -35,28 +32,53 @@
               <v-icon>{{ item.icon }}</v-icon>
             </v-btn>
           </v-btn-toggle>
+          <v-divider class="mx-4" vertical></v-divider>
+          <contrast-brightness-settings 
+            v-model="contrastVal"
+            :title="'CONTRAST SETTINGS'"
+            :icon="'mdi-contrast-circle'"
+            @reset="resetContrast()"/>
+          <contrast-brightness-settings 
+            v-model="brightnessVal"
+            :title="'BRIGHTNESS SETTINGS'"
+            :icon="'mdi-brightness-6'"
+            @reset="resetBrightnrss()"/>
+          <v-btn elevation="0" class="toolbar-btn">
+            <v-icon>mdi-palette</v-icon>
+          </v-btn>
           <v-spacer></v-spacer>
         </v-toolbar>
 
         <v-row no-gutters>
-          <v-col cols="2">
-            <img-list></img-list>
-          </v-col>
-          <v-col cols="10">
+          <v-card class="ma-0 pa-0" flat tile >
+            <v-navigation-drawer width="100%" permanent>
+              <v-row class="fill-height d-flex flex-row overflow-x-hidden" no-gutters>
+                <v-navigation-drawer mini-variant mini-variant-width="50" permanent>
+                  <v-list-item class="d-flex justify-center px-2">
+                    <v-icon v-if="showDrawer" @click="showDrawer = false">mdi-chevron-left</v-icon>
+                    <v-icon v-else @click="showDrawer = true">mdi-chevron-right</v-icon>
+                  </v-list-item>
+                </v-navigation-drawer>
+                <img-list v-show="showDrawer"></img-list>
+              </v-row>
+            </v-navigation-drawer>
+          </v-card>
 
-
-            <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false"/>
-            <ClassSettings :visible="showClassSettings" @close="showClassSettings=false"/>
-            <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false"/>
-            <pathology-image-viewer/>
+          <v-col>
+            <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
+            <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
+            <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
+            <pathology-image-viewer />
           </v-col>
         </v-row>
+
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import ContrastBrightnessSettings from "./ContrastBrightnessSettings";
 import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
@@ -97,10 +119,20 @@ export default {
           icon: "mdi-vector-square",
         }*/,
       ],
+    showDrawer: true,
+    timer: null
     };
   },
   computed: {
-    ...mapGetters(["annotation", "activeGeometry", "activeClassName", "canUndo", "canRedo"]),
+    ...mapGetters([
+        "annotation",
+        "activeGeometry",
+        "activeClassName",
+        "canUndo",
+        "canRedo",
+        "brightness",
+        "contrast"
+    ]),
     selectedGeometry: {
       get: function () {
         return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
@@ -123,13 +155,30 @@ export default {
             });
       },
     },
+    contrastVal: {
+        get: function () {
+            return this.contrast;
+        },
+        set: function (value) {
+            this.$store.commit(m.PROJECTS_SET_CONTRAST, value);
+        }
+    },
+    brightnessVal: {
+        get: function () {
+            return this.brightness;
+        },
+        set: function (value) {
+            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value);
+        }
+    }
   },
   components: {
     PathologyImageViewer,
     AnnotationSettings,
     ClassSettings,
     NewClassSettings,
-    ImgList
+    ImgList,
+    ContrastBrightnessSettings
   },
   methods: {
     addFearure: function () {
@@ -168,6 +217,12 @@ export default {
             console.log("error fetching activeGeometry data");
             console.log(e);
           });
+    },
+    resetContrast: function () {
+        this.$store.commit(m.PROJECTS_RESET_CONTRAST);
+    },
+    resetBrightnrss: function () {
+        this.$store.commit(m.PROJECTS_RESET_BRIGHTNESS);
     }
   },
   async created() {
@@ -190,10 +245,31 @@ export default {
     //   ].map((p) => p.catch((e) => console.log(e)))
     // );
   },
+  mounted: function () {
+    this.$store.dispatch(a.PROJECTS_FETCH_FILES);
+    this.timer = setInterval(() => {
+        this.$store.dispatch(a.PROJECTS_FETCH_FILES);
+    }, 10000);
+  },
+  beforeDestroy: function () {
+    clearInterval(this.timer);
+  }
 };
 </script>
 
-<style scoped>
+<style>
+.toolbar-btn {
+  min-width: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+.v-navigation-drawer__border {
+  display: none !important;
+}
+
 /* td {
   vertical-align: middle !important;
 }

@@ -23,6 +23,8 @@ function getDefaultClass() {
     };
 }
 
+const CONTRAST = 50.0;
+const BRIGHTNESS = 50.0;
 
 const state = {
     fetching: false,
@@ -39,7 +41,9 @@ const state = {
     classChanged: false,
     files: [],
     recordedStack: [],
-    currentRecordedIndex: -1
+    currentRecordedIndex: -1,
+    contrast: 50,
+    brightness: 50
 };
 
 const getters = {
@@ -60,7 +64,9 @@ const getters = {
     classChanged: state => state.classChanged,
     files: state => state.files,
     canUndo: state => state.currentRecordedIndex > 0,
-    canRedo: state => state.currentRecordedIndex > -1 && state.currentRecordedIndex < state.recordedStack.length - 1
+    canRedo: state => state.currentRecordedIndex > -1 && state.currentRecordedIndex < state.recordedStack.length - 1,
+    contrast: state => state.contrast,
+    brightness: state => state.brightness
 };
 
 const mutations = {
@@ -372,8 +378,19 @@ const mutations = {
             Vue.set(state, 'activeClass', redoAnnotation.activeClass);
             Vue.set(state, 'annotation', redoAnnotation);
         }
-    }
-};
+    },
+    [m.PROJECTS_SET_CONTRAST](state, contrast) {
+        state.contrast = contrast;
+    },
+    [m.PROJECTS_RESET_CONTRAST](state) {
+        state.contrast = CONTRAST;
+    },
+    [m.PROJECTS_SET_BRIGHTNESS](state, brightness) {
+        state.brightness = brightness;
+    },
+    [m.PROJECTS_RESET_BRIGHTNESS](state) {
+        state.brightness = BRIGHTNESS;
+    }};
 
 const actions = {
     [a.PROJECTS_FETCH_ANNOTATION]: async ({state, commit}) => {
@@ -430,11 +447,9 @@ const actions = {
                 throw err;
             });
     },
-    [a.PROJECTS_FETCH_FILES]: async ({state, commit}) => {
-        console.log('ACTION POST ANNOTATION');
-
+    [a.PROJECTS_FETCH_FILES]: async ({commit}) => {
         return backend.files
-            .get(state.activeProjectId, state.activeStudyId, "")
+            .get()
             .then(res => {
                 commit(m.PROJECTS_SET_FILES, res);
                 return res;
