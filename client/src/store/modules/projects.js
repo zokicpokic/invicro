@@ -25,6 +25,7 @@ function getDefaultClass() {
 
 const CONTRAST = 50.0;
 const BRIGHTNESS = 50.0;
+const HUE = 0;
 
 const state = {
     fetching: false,
@@ -43,7 +44,8 @@ const state = {
     recordedStack: [],
     currentRecordedIndex: -1,
     contrast: 50,
-    brightness: 50
+    brightness: 50,
+    hue: 0
 };
 
 const getters = {
@@ -66,7 +68,8 @@ const getters = {
     canUndo: state => state.currentRecordedIndex > 0,
     canRedo: state => state.currentRecordedIndex > -1 && state.currentRecordedIndex < state.recordedStack.length - 1,
     contrast: state => state.contrast,
-    brightness: state => state.brightness
+    brightness: state => state.brightness,
+    hue: state => state.hue
 };
 
 const mutations = {
@@ -390,6 +393,12 @@ const mutations = {
     },
     [m.PROJECTS_RESET_BRIGHTNESS](state) {
         state.brightness = BRIGHTNESS;
+    },
+    [m.PROJECTS_SET_HUE](state, hue) {
+        state.hue = hue;
+    },
+    [m.PROJECTS_RESET_HUE](state) {
+        state.hue = HUE;
     }};
 
 const actions = {

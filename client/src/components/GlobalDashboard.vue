@@ -43,9 +43,14 @@
             :title="'BRIGHTNESS SETTINGS'"
             :icon="'mdi-brightness-6'"
             @reset="resetBrightnrss()"/>
-          <v-btn elevation="0" class="toolbar-btn">
+          <hue-settings
+              v-model="hueVal"
+              :title="'HUE SETTINGS'"
+              :icon="'mdi-palette'"
+              @reset="resetBrightnrss()"/>
+          <!--<v-btn elevation="0" class="toolbar-btn">
             <v-icon>mdi-palette</v-icon>
-          </v-btn>
+          </v-btn>-->
           <v-spacer></v-spacer>
         </v-toolbar>
 
@@ -79,6 +84,7 @@
 
 <script>
 import ContrastBrightnessSettings from "./ContrastBrightnessSettings";
+import HueSettings from "./HueSettings";
 import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
@@ -170,6 +176,14 @@ export default {
         set: function (value) {
             this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value);
         }
+    },
+    hueVal: {
+      get: function () {
+        return this.hue;
+      },
+      set: function (value) {
+        this.$store.commit(m.PROJECTS_SET_HUE, value);
+      }
     }
   },
   components: {
@@ -178,7 +192,8 @@ export default {
     ClassSettings,
     NewClassSettings,
     ImgList,
-    ContrastBrightnessSettings
+    ContrastBrightnessSettings,
+    HueSettings
   },
   methods: {
     addFearure: function () {
