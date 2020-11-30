@@ -23,6 +23,8 @@ import * as m from "../../store/mutation_types";
 import * as a from "../../store/action_types";
 import DrawRegular from "ol-ext/interaction/DrawRegular";
 import Colorize from "ol-ext/filter/Colorize";
+// import RasterSource from 'ol/source/Raster';
+// import ImageLayer from 'ol/layer/Image'
 
 export default {
     name: "pathology-image-viewer",
@@ -38,7 +40,8 @@ export default {
             baseLayer: null,
             vectorAnnotations: null,
             contrastFilter: null,
-            brightnessFilter: null
+            brightnessFilter: null,
+            colorFilter: null
         };
     },
     computed: {
@@ -57,7 +60,11 @@ export default {
             "classes",
             "classChanged",
             "contrast",
-            "brightness"
+            "brightness",
+            "red",
+            "green",
+            "blue",
+            "intensity"
         ]),
     },
     watch: {
@@ -105,11 +112,46 @@ export default {
             }
         },
         contrast: function () {
-            console.log(this.contrast);
             this.contrastFilter.setFilter({ operation: 'contrast', value: this.contrast});
         },
         brightness: function () {
             this.brightnessFilter.setFilter({ operation: 'luminosity', value: this.brightness});
+        },
+        red: function () {
+            this.colorFilter.setFilter({
+                operation: 'color',
+                red: this.red,
+                green: this.green,
+                blue: this.blue,
+                value: this.intensity
+            })
+        },
+        green: function () {
+            this.colorFilter.setFilter({
+                operation: 'color',
+                red: this.red,
+                green: this.green,
+                blue: this.blue,
+                value: this.intensity
+            })
+        },
+        blue: function () {
+            this.colorFilter.setFilter({
+                operation: 'color',
+                red: this.red,
+                green: this.green,
+                blue: this.blue,
+                value: this.intensity
+            })
+        },
+        intensity: function () {
+            this.colorFilter.setFilter({
+                operation: 'color',
+                red: this.red,
+                green: this.green,
+                blue: this.blue,
+                value: this.intensity
+            })
         }
     },
     mounted: function () {
@@ -330,15 +372,68 @@ export default {
                         studyId + '/' +
                         serieId +
                         '.svs/{z}/{x}/{y}',
+                    // crossOrigin: '*',
                     wrapX: false
                 }),
             });
 
-            this.contrastFilter = new Colorize({ operation:'contrast', value: this.contrast});
+            // this.rasterSource = new RasterSource({
+            //     sources: [this.baseLayer],
+            //     operation: function (pixels, data) {
+            //         const hcl = this.rgb2hcl(pixels[0]);
+            //         let h = hcl[0] + (Math.PI * data.hue) / 180;
+            //         if (h < 0) {
+            //             h += twoPi;
+            //         } else if (h > this.twoPi) {
+            //             h -= twoPi;
+            //         }
+            //         hcl[0] = h;
+            //         hcl[1] *= data.chroma / 100;
+            //         hcl[2] *= data.lightness / 100;
+            //         return this.hcl2rgb(hcl);
+            //     },
+            //     lib: {
+            //         rgb2hcl: rgb2hcl,
+            //         hcl2rgb: hcl2rgb,
+            //         rgb2xyz: rgb2xyz,
+            //         lab2xyz: lab2xyz,
+            //         xyz2lab: xyz2lab,
+            //         xyz2rgb: xyz2rgb,
+            //         Xn: Xn,
+            //         Yn: Yn,
+            //         Zn: Zn,
+            //         t0: t0,
+            //         t1: t1,
+            //         t2: t2,
+            //         t3: t3,
+            //         twoPi: twoPi
+            //     },
+            // });
+            // var me = this;
+            // this.rasterSource.on('beforeoperations', function (event) {
+            //   const data = event.data;
+            //   data.hue = me.hue;
+            //   data.lightness = me.brightness;
+            //   data.chroma = me.contrast;
+            // });
+            // this.rasterLayer = new ImageLayer({
+            //   source: this.rasterSource,
+            // });
+
+            this.contrastFilter = new Colorize({ operation:'contrast', value: this.contrast });
             this.baseLayer.addFilter(this.contrastFilter);
 
-            this.brightnessFilter = new Colorize({ operation:'luminosity', value: this.brightness});
+            this.brightnessFilter = new Colorize({ operation:'luminosity', value: this.brightness });
             this.baseLayer.addFilter(this.brightnessFilter);
+
+            this.colorFilter = new Colorize({
+                operation: 'color',
+                red: this.red,
+                green: this.green,
+                blue: this.blue,
+                value: this.intensity
+            });
+            this.baseLayer.addFilter(this.colorFilter);
 
             this.sourceAnnotations = new VectorSource({
                 format: new GeoJSON(),
@@ -353,6 +448,7 @@ export default {
             });
 
             this.dataMap.addLayer(this.baseLayer);
+            // this.dataMap.addLayer(this.rasterLayer);
             this.dataMap.addLayer(this.vectorAnnotations);
 
             this.$store.dispatch(a.PROJECTS_FETCH_DIMENSIONS);

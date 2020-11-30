@@ -43,10 +43,7 @@
             :title="'BRIGHTNESS SETTINGS'"
             :icon="'mdi-brightness-6'"
             @reset="resetBrightnrss()"/>
-          <v-btn elevation="0" class="toolbar-btn">
-            <v-icon>mdi-palette</v-icon>
-          </v-btn>
-          <v-spacer></v-spacer>
+          <color-settings />
         </v-toolbar>
 
         <v-row no-gutters>
@@ -79,6 +76,7 @@
 
 <script>
 import ContrastBrightnessSettings from "./ContrastBrightnessSettings";
+import ColorSettings from "./ColorSettings";
 import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
@@ -153,7 +151,7 @@ export default {
               console.log("error fetcing activeGeometry data");
               console.log(e);
             });
-      },
+      }
     },
     contrastVal: {
         get: function () {
@@ -178,7 +176,8 @@ export default {
     ClassSettings,
     NewClassSettings,
     ImgList,
-    ContrastBrightnessSettings
+    ContrastBrightnessSettings,
+    ColorSettings
   },
   methods: {
     addFearure: function () {

@@ -25,6 +25,10 @@ function getDefaultClass() {
 
 const CONTRAST = 0.5;
 const BRIGHTNESS = 0.5;
+const RED = 128;
+const GREEN = 128;
+const BLUE = 128;
+const INTENSITY = 0.0;
 
 const state = {
     fetching: false,
@@ -43,7 +47,11 @@ const state = {
     recordedStack: [],
     currentRecordedIndex: -1,
     contrast: CONTRAST,
-    brightness: BRIGHTNESS
+    brightness: BRIGHTNESS,
+    red: RED,
+    green: GREEN,
+    blue: BLUE,
+    intensity: INTENSITY
 };
 
 const getters = {
@@ -66,7 +74,11 @@ const getters = {
     canUndo: state => state.currentRecordedIndex > 0,
     canRedo: state => state.currentRecordedIndex > -1 && state.currentRecordedIndex < state.recordedStack.length - 1,
     contrast: state => state.contrast,
-    brightness: state => state.brightness
+    brightness: state => state.brightness,
+    red: state => state.red,
+    green: state => state.green,
+    blue: state => state.blue,
+    intensity: state => state.intensity
 };
 
 const mutations = {
@@ -390,6 +402,28 @@ const mutations = {
     },
     [m.PROJECTS_RESET_BRIGHTNESS](state) {
         state.brightness = BRIGHTNESS;
+    },
+    [m.PROJECTS_SET_COLOR](state, {color, value}) {
+        if (color === "red") {
+            state.red = value;
+        } else if (color === "green") {
+            state.green = value;
+        } else if (color === "blue") {
+            state.blue = value;
+        } else if (color === "intensity") {
+            state.intensity = value;
+        }
+    },
+    [m.PROJECTS_RESET_COLOR](state, color) {
+        if (color === "red") {
+            state.red = RED;
+        } else if (color === "green") {
+            state.green = GREEN;
+        } else if (color === "blue") {
+            state.blue = BLUE;
+        } else if (color === "intensity") {
+            state.intensity = INTENSITY;
+        }
     }};
 
 const actions = {
