@@ -157,18 +157,18 @@ export default {
     },
     contrastVal: {
         get: function () {
-            return this.contrast;
+            return Math.round(this.contrast * 100);
         },
         set: function (value) {
-            this.$store.commit(m.PROJECTS_SET_CONTRAST, value);
+            this.$store.commit(m.PROJECTS_SET_CONTRAST, value / 100.0);
         }
     },
     brightnessVal: {
         get: function () {
-            return this.brightness;
+            return Math.round(this.brightness * 100);
         },
         set: function (value) {
-            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value);
+            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value / 100.0);
         }
     }
   },

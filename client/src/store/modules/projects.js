@@ -23,8 +23,8 @@ function getDefaultClass() {
     };
 }
 
-const CONTRAST = 50.0;
-const BRIGHTNESS = 50.0;
+const CONTRAST = 0.5;
+const BRIGHTNESS = 0.5;
 
 const state = {
     fetching: false,
@@ -42,8 +42,8 @@ const state = {
     files: [],
     recordedStack: [],
     currentRecordedIndex: -1,
-    contrast: 50,
-    brightness: 50
+    contrast: CONTRAST,
+    brightness: BRIGHTNESS
 };
 
 const getters = {

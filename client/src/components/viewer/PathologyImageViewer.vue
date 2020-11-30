@@ -22,6 +22,7 @@ import {mapGetters} from "vuex";
 import * as m from "../../store/mutation_types";
 import * as a from "../../store/action_types";
 import DrawRegular from "ol-ext/interaction/DrawRegular";
+import Colorize from "ol-ext/filter/Colorize";
 
 export default {
     name: "pathology-image-viewer",
@@ -33,7 +34,11 @@ export default {
             featureColor: "#00000",
             mapHeight: 600,
             mapWidth: 600,
-            resizeObserver: null
+            resizeObserver: null,
+            baseLayer: null,
+            vectorAnnotations: null,
+            contrastFilter: null,
+            brightnessFilter: null
         };
     },
     computed: {
@@ -50,7 +55,9 @@ export default {
             "mldContent",
             "mldType",
             "classes",
-            "classChanged"
+            "classChanged",
+            "contrast",
+            "brightness"
         ]),
     },
     watch: {
@@ -96,6 +103,13 @@ export default {
                     this.resizeMap();
                 });
             }
+        },
+        contrast: function () {
+            console.log(this.contrast);
+            this.contrastFilter.setFilter({ operation: 'contrast', value: this.contrast});
+        },
+        brightness: function () {
+            this.brightnessFilter.setFilter({ operation: 'luminosity', value: this.brightness});
         }
     },
     mounted: function () {
@@ -303,10 +317,7 @@ export default {
                 this.dataMap.removeLayer(this.vectorAnnotations);
             }
             else {
-                let map = new Map({
-                    target: "mapOL",
-                });
-                this.dataMap = map;
+                this.dataMap = new Map({ target: "mapOL" });
             }
 
             //to do add bbox to state and return collection of tiles
@@ -322,6 +333,12 @@ export default {
                     wrapX: false
                 }),
             });
+
+            this.contrastFilter = new Colorize({ operation:'contrast', value: this.contrast});
+            this.baseLayer.addFilter(this.contrastFilter);
+
+            this.brightnessFilter = new Colorize({ operation:'luminosity', value: this.brightness});
+            this.baseLayer.addFilter(this.brightnessFilter);
 
             this.sourceAnnotations = new VectorSource({
                 format: new GeoJSON(),
