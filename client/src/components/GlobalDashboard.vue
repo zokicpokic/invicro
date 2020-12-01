@@ -43,15 +43,7 @@
             :title="'BRIGHTNESS SETTINGS'"
             :icon="'mdi-brightness-6'"
             @reset="resetBrightnrss()"/>
-          <hue-settings
-              v-model="hueVal"
-              :title="'HUE SETTINGS'"
-              :icon="'mdi-palette'"
-              @reset="resetBrightnrss()"/>
-          <!--<v-btn elevation="0" class="toolbar-btn">
-            <v-icon>mdi-palette</v-icon>
-          </v-btn>-->
-          <v-spacer></v-spacer>
+          <color-settings />
         </v-toolbar>
 
         <v-row no-gutters>
@@ -84,7 +76,7 @@
 
 <script>
 import ContrastBrightnessSettings from "./ContrastBrightnessSettings";
-import HueSettings from "./HueSettings";
+import ColorSettings from "./ColorSettings";
 import PathologyImageViewer from "@/components/viewer/PathologyImageViewer";
 import AnnotationSettings from "@/components/AnnotationsSettings";
 import ClassSettings from "@/components/ClassSettings";
@@ -159,31 +151,23 @@ export default {
               console.log("error fetcing activeGeometry data");
               console.log(e);
             });
-      },
+      }
     },
     contrastVal: {
         get: function () {
-            return this.contrast;
+            return Math.round(this.contrast * 100);
         },
         set: function (value) {
-            this.$store.commit(m.PROJECTS_SET_CONTRAST, value);
+            this.$store.commit(m.PROJECTS_SET_CONTRAST, value / 100.0);
         }
     },
     brightnessVal: {
         get: function () {
-            return this.brightness;
+            return Math.round(this.brightness * 100);
         },
         set: function (value) {
-            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value);
+            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value / 100.0);
         }
-    },
-    hueVal: {
-      get: function () {
-        return this.hue;
-      },
-      set: function (value) {
-        this.$store.commit(m.PROJECTS_SET_HUE, value);
-      }
     }
   },
   components: {
@@ -193,7 +177,7 @@ export default {
     NewClassSettings,
     ImgList,
     ContrastBrightnessSettings,
-    HueSettings
+    ColorSettings
   },
   methods: {
     addFearure: function () {

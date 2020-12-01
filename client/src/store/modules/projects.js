@@ -23,9 +23,12 @@ function getDefaultClass() {
     };
 }
 
-const CONTRAST = 50.0;
-const BRIGHTNESS = 50.0;
-const HUE = 0;
+const CONTRAST = 0.5;
+const BRIGHTNESS = 0.5;
+const RED = 128;
+const GREEN = 128;
+const BLUE = 128;
+const INTENSITY = 0.0;
 
 const state = {
     fetching: false,
@@ -43,9 +46,12 @@ const state = {
     files: [],
     recordedStack: [],
     currentRecordedIndex: -1,
-    contrast: 50,
-    brightness: 50,
-    hue: 0
+    contrast: CONTRAST,
+    brightness: BRIGHTNESS,
+    red: RED,
+    green: GREEN,
+    blue: BLUE,
+    intensity: INTENSITY
 };
 
 const getters = {
@@ -69,7 +75,10 @@ const getters = {
     canRedo: state => state.currentRecordedIndex > -1 && state.currentRecordedIndex < state.recordedStack.length - 1,
     contrast: state => state.contrast,
     brightness: state => state.brightness,
-    hue: state => state.hue
+    red: state => state.red,
+    green: state => state.green,
+    blue: state => state.blue,
+    intensity: state => state.intensity
 };
 
 const mutations = {
@@ -394,11 +403,27 @@ const mutations = {
     [m.PROJECTS_RESET_BRIGHTNESS](state) {
         state.brightness = BRIGHTNESS;
     },
-    [m.PROJECTS_SET_HUE](state, hue) {
-        state.hue = hue;
+    [m.PROJECTS_SET_COLOR](state, {color, value}) {
+        if (color === "red") {
+            state.red = value;
+        } else if (color === "green") {
+            state.green = value;
+        } else if (color === "blue") {
+            state.blue = value;
+        } else if (color === "intensity") {
+            state.intensity = value;
+        }
     },
-    [m.PROJECTS_RESET_HUE](state) {
-        state.hue = HUE;
+    [m.PROJECTS_RESET_COLOR](state, color) {
+        if (color === "red") {
+            state.red = RED;
+        } else if (color === "green") {
+            state.green = GREEN;
+        } else if (color === "blue") {
+            state.blue = BLUE;
+        } else if (color === "intensity") {
+            state.intensity = INTENSITY;
+        }
     }};
 
 const actions = {
