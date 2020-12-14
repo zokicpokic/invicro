@@ -1,8 +1,8 @@
 <template>
   <div style="width:100%; backgound-color:red" ref="mapContainer">
     <div id="mapOL"
-       :style="{ height: this.mapHeight + 'px' }"
-       style="background-color:#f5f5f5">
+      :style="{ height: this.mapHeight + 'px' }"
+      style="background-color:#f5f5f5">
     </div>
   </div>
 </template>
@@ -16,18 +16,16 @@ import {Draw, Snap} from "ol/interaction";
 import {Tile as TileLayer, Vector as VectorLayer} from "ol/layer";
 import {Vector as VectorSource} from "ol/source";
 import GeoJSON from "ol/format/GeoJSON";
-import { /* Circle as CircleStyle, */ Fill, Stroke, Style} from "ol/style";
+import {Fill, Stroke, Style} from "ol/style";
 import {bbox} from "ol/loadingstrategy";
 import {mapGetters} from "vuex";
 import * as m from "../../store/mutation_types";
 import * as a from "../../store/action_types";
 import DrawRegular from "ol-ext/interaction/DrawRegular";
 import Colorize from "ol-ext/filter/Colorize";
-// import RasterSource from 'ol/source/Raster';
-// import ImageLayer from 'ol/layer/Image'
 
 export default {
-    name: "pathology-image-viewer",
+    name: "PathologyImageViewer",
     data: function () {
         return {
             dataMap: null,
@@ -65,7 +63,7 @@ export default {
             "green",
             "blue",
             "intensity"
-        ]),
+        ])
     },
     watch: {
         $route: function () {
@@ -124,7 +122,7 @@ export default {
                 green: this.green,
                 blue: this.blue,
                 value: this.intensity
-            })
+            });
         },
         green: function () {
             this.colorFilter.setFilter({
@@ -133,7 +131,7 @@ export default {
                 green: this.green,
                 blue: this.blue,
                 value: this.intensity
-            })
+            });
         },
         blue: function () {
             this.colorFilter.setFilter({
@@ -142,7 +140,7 @@ export default {
                 green: this.green,
                 blue: this.blue,
                 value: this.intensity
-            })
+            });
         },
         intensity: function () {
             this.colorFilter.setFilter({
@@ -151,7 +149,7 @@ export default {
                 green: this.green,
                 blue: this.blue,
                 value: this.intensity
-            })
+            });
         }
     },
     mounted: function () {
@@ -206,13 +204,11 @@ export default {
             let view = new View({
                 center: [
                     (((2 * this.imageWidth) / MAX_EXTENTION) * 20026376.39) / 2,
-                    (((2 * (MAX_EXTENTION - this.imageHeight)) / MAX_EXTENTION) *
-                        20048966.1) /
-                    2,
+                    (((2 * (MAX_EXTENTION - this.imageHeight)) / MAX_EXTENTION) * 20048966.1) / 2
                 ],
                 zoom: maxZoomLevel / 2,
                 maxZoom: maxZoomLevel - 1,
-                extent: extent,
+                extent: extent
             });
             this.dataMap.setView(view);
         },
@@ -236,7 +232,7 @@ export default {
                 center: view.getCenter(),
                 zoom: view.getZoom(),
                 maxZoom: maxZoomLevel - 1,
-                extent: extent,
+                extent: extent
             });
             this.dataMap.setView(newView);
         },
@@ -317,7 +313,7 @@ export default {
                             }),
                             fill: new Fill({
                                 color: currClass.fillColor
-                            }),
+                            })
                         }) :
                         new Style({
                             visibility: 'hidden'
@@ -352,8 +348,6 @@ export default {
                 serieId: serieId,
             });
 
-            // TODO: dispose dataMap is not undefined if needed (check openlayers doc)
-
             if (this.dataMap) {
                 this.dataMap.removeLayer(this.baseLayer);
                 this.dataMap.removeLayer(this.vectorAnnotations);
@@ -372,9 +366,9 @@ export default {
                         studyId + '/' +
                         serieId +
                         '.svs/{z}/{x}/{y}',
-                    // crossOrigin: '*',
+                    crossOrigin: '*',
                     wrapX: false
-                }),
+                })
             });
 
             // this.rasterSource = new RasterSource({
@@ -491,10 +485,6 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 @import "~ol/ol.css";
-
-/* #mapOL {
-  height: 600px;
-} */
 </style>

@@ -14,8 +14,8 @@
               <v-autocomplete
                 :items="['Polygon','Ellipse', 'Circle', 'Rectangle', 'Square']"
                 label="Figure"
-                single
-              ></v-autocomplete>
+                single>
+              </v-autocomplete>
             </v-col>
           </v-row>
         </v-container>
@@ -31,18 +31,19 @@
 
 <script>
 export default {
-  props: ["visible"],
-  computed: {
-    show: {
-      get() {
-        return this.visible;
-      },
-      set(value) {
-        if (!value) {
-          this.$emit("close");
+    name: "AnnotationSettings",
+    props: ["visible"],
+    computed: {
+        show: {
+            get() {
+                return this.visible;
+            },
+            set(value) {
+                if (!value) {
+                    this.$emit("close");
+                }
+            }
         }
-      },
-    },
-  },
+    }
 };
 </script>

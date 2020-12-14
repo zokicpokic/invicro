@@ -33,12 +33,12 @@
             </v-btn>
           </v-btn-toggle>
           <v-divider class="mx-4" vertical></v-divider>
-          <contrast-brightness-settings 
+          <contrast-brightness-settings
             v-model="contrastVal"
             :title="'CONTRAST SETTINGS'"
             :icon="'mdi-contrast-circle'"
             @reset="resetContrast()"/>
-          <contrast-brightness-settings 
+          <contrast-brightness-settings
             v-model="brightnessVal"
             :title="'BRIGHTNESS SETTINGS'"
             :icon="'mdi-brightness-6'"
@@ -62,9 +62,9 @@
           </v-card>
 
           <v-col>
-            <AnnotationSettings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
-            <ClassSettings :visible="showClassSettings" @close="showClassSettings=false" />
-            <NewClassSettings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
+            <annotation-settings :visible="showAnnotationSettings" @close="showAnnotationSettings=false" />
+            <class-settings :visible="showClassSettings" @close="showClassSettings=false" />
+            <new-class-settings :visible="showNewClassSettings" @close="showNewClassSettings=false" />
             <pathology-image-viewer />
           </v-col>
         </v-row>
@@ -89,170 +89,152 @@ import axios from "axios";
 import constants from "@/utils/constants";
 
 export default {
-  name: "global-dashboard",
-  data() {
-    return {
-      showAnnotationSettings: false,
-      showClassSettings: false,
-      showNewClassSettings: false,
-      geometries: [
-        {
-          name: "Polygon",
-          icon: "mdi-vector-polygon",
+    name: "GlobalDashboard",
+    data() {
+        return {
+            showAnnotationSettings: false,
+            showClassSettings: false,
+            showNewClassSettings: false,
+            geometries: [
+                {
+                    name: "Polygon",
+                    icon: "mdi-vector-polygon",
+                },
+                {
+                    name: "Ellipse",
+                    icon: "mdi-vector-ellipse",
+                },
+                /*{
+                    name: "Circle",
+                    icon: "mdi-vector-circle",
+                },*/
+                {
+                    name: "Rectangle",
+                    icon: "mdi-vector-rectangle",
+                }/*,
+                {
+                    name: "Square",
+                    icon: "mdi-vector-square",
+                }*/
+            ],
+            showDrawer: true,
+            timer: null
+        };
+    },
+    computed: {
+        ...mapGetters([
+            "annotation",
+            "activeGeometry",
+            "activeClassName",
+            "canUndo",
+            "canRedo",
+            "brightness",
+            "contrast"
+        ]),
+        selectedGeometry: {
+            get: function () {
+                return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
+            },
+            set: function (val) {
+                const geometry = this.geometries[val].name;
+                this.$store.commit(m.PROJECTS_SET_ACTIVE_GEOMETRY, {
+                    geometry,
+                });
+                this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+                    annotation: this.annotation,
+                }).then(() => {
+                }).catch((e) => {
+                    console.log("error fetcing activeGeometry data");
+                    console.log(e);
+                });
+            }
         },
-        {
-          name: "Ellipse",
-          icon: "mdi-vector-ellipse",
+        contrastVal: {
+            get: function () {
+                return Math.round(this.contrast * 100);
+            },
+            set: function (value) {
+                this.$store.commit(m.PROJECTS_SET_CONTRAST, value / 100.0);
+            }
         },
-        /*{
-          name: "Circle",
-          icon: "mdi-vector-circle",
-        },*/
-        {
-          name: "Rectangle",
-          icon: "mdi-vector-rectangle",
-        }/*,
-        {
-          name: "Square",
-          icon: "mdi-vector-square",
-        }*/,
-      ],
-    showDrawer: true,
-    timer: null
-    };
-  },
-  computed: {
-    ...mapGetters([
-        "annotation",
-        "activeGeometry",
-        "activeClassName",
-        "canUndo",
-        "canRedo",
-        "brightness",
-        "contrast"
-    ]),
-    selectedGeometry: {
-      get: function () {
-        return this.geometries.map((x) => x.name).indexOf(this.activeGeometry);
-      },
-      set: async function (val) {
-        const geometry = this.geometries[val].name;
-        this.$store.commit(m.PROJECTS_SET_ACTIVE_GEOMETRY, {
-          geometry,
-        });
-        var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
-          annotation: this.annotation,
-        });
-
-        await Promise.all([f])
-            .then(() => {
-            })
-            .catch((e) => {
-              console.log("error fetcing activeGeometry data");
-              console.log(e);
+        brightnessVal: {
+            get: function () {
+                return Math.round(this.brightness * 100);
+            },
+            set: function (value) {
+                this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value / 100.0);
+            }
+        }
+    },
+    components: {
+       PathologyImageViewer,
+       AnnotationSettings,
+       ClassSettings,
+       NewClassSettings,
+       ImgList,
+       ContrastBrightnessSettings,
+       ColorSettings
+    },
+    methods: {
+        addFearure: function () {
+            this.showAnnotationSettings = true;
+        },
+        showClasses: function () {
+            this.showClassSettings = true;
+        },
+        showNewClass: function () {
+            this.showNewClassSettings = true;
+        },
+        performUndo: async function() {
+            this.$store.commit(m.ANNOTATIONS_PERFORM_UNDO);
+            this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+                annotation: this.annotation,
+            }).then(() => {
+            }).catch((e) => {
+                console.log("error fetching activeGeometry data");
+                console.log(e);
             });
-      }
-    },
-    contrastVal: {
-        get: function () {
-            return Math.round(this.contrast * 100);
         },
-        set: function (value) {
-            this.$store.commit(m.PROJECTS_SET_CONTRAST, value / 100.0);
+        performRedo: async function() {
+            this.$store.commit(m.ANNOTATIONS_PERFORM_REDO);
+            this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
+              annotation: this.annotation,
+            }).then(() => {
+            }).catch((e) => {
+                console.log("error fetching activeGeometry data");
+                console.log(e);
+            });
+        },
+        resetContrast: function () {
+            this.$store.commit(m.PROJECTS_RESET_CONTRAST);
+        },
+        resetBrightnrss: function () {
+            this.$store.commit(m.PROJECTS_RESET_BRIGHTNESS);
         }
     },
-    brightnessVal: {
-        get: function () {
-            return Math.round(this.brightness * 100);
-        },
-        set: function (value) {
-            this.$store.commit(m.PROJECTS_SET_BRIGHTNESS, value / 100.0);
+    async created() {
+        let Settings;
+        await axios.get('configuration.json').then(response => (Settings = response.data));
+        console.log(Settings);
+
+        for (var i in constants) {
+            // eslint-disable-next-line no-prototype-builtins
+            if (Settings.hasOwnProperty(i)) {
+                //constants[i] = Settings[i];
+                console.log(Settings[i]);
+                console.log(constants[i]);
+            }
         }
-    }
-  },
-  components: {
-    PathologyImageViewer,
-    AnnotationSettings,
-    ClassSettings,
-    NewClassSettings,
-    ImgList,
-    ContrastBrightnessSettings,
-    ColorSettings
-  },
-  methods: {
-    addFearure: function () {
-      this.showAnnotationSettings = true;
     },
-    showClasses: function () {
-      this.showClassSettings = true;
-    },
-    showNewClass: function () {
-      this.showNewClassSettings = true;
-    },
-    performUndo: async function() {
-      this.$store.commit(m.ANNOTATIONS_PERFORM_UNDO);
-      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
-        annotation: this.annotation,
-      });
-
-      await Promise.all([f])
-          .then(() => {
-          })
-          .catch((e) => {
-            console.log("error fetching activeGeometry data");
-            console.log(e);
-          });
-    },
-    performRedo: async function() {
-      this.$store.commit(m.ANNOTATIONS_PERFORM_REDO);
-      var f = this.$store.dispatch(a.PROJECTS_POST_ANNOTATION, {
-        annotation: this.annotation,
-      });
-
-      await Promise.all([f])
-          .then(() => {
-          })
-          .catch((e) => {
-            console.log("error fetching activeGeometry data");
-            console.log(e);
-          });
-    },
-    resetContrast: function () {
-        this.$store.commit(m.PROJECTS_RESET_CONTRAST);
-    },
-    resetBrightnrss: function () {
-        this.$store.commit(m.PROJECTS_RESET_BRIGHTNESS);
-    }
-  },
-  async created() {
-    let Settings;
-    await axios.get('configuration.json').then(response => (Settings = response.data));
-    console.log(Settings);
-
-    for (var i in constants) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (Settings.hasOwnProperty(i)) {
-        //constants[i] = Settings[i];
-        console.log(Settings[i]);
-        console.log(constants[i]);
-      }
-    }
-    // Object.freeze(constants);
-    // await Promise.all(
-    //   [
-    //     //TO DO WAIT FOR DEFAULT FETCH MODEL
-    //   ].map((p) => p.catch((e) => console.log(e)))
-    // );
-  },
-  mounted: function () {
-    this.$store.dispatch(a.PROJECTS_FETCH_FILES);
-    this.timer = setInterval(() => {
+    mounted: function () {
         this.$store.dispatch(a.PROJECTS_FETCH_FILES);
-    }, 10000);
-  },
-  beforeDestroy: function () {
-    clearInterval(this.timer);
-  }
+        this.timer = setInterval(() => {
+            this.$store.dispatch(a.PROJECTS_FETCH_FILES);
+        }, 10000);
+    },
+    beforeDestroy: function () {
+        clearInterval(this.timer);
+    }
 };
 </script>
 
@@ -268,36 +250,4 @@ export default {
 .v-navigation-drawer__border {
   display: none !important;
 }
-
-/* td {
-  vertical-align: middle !important;
-}
-
-a.project-name {
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.all-projects {
-  margin-top: 1rem;
-}
-
-.right-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.stats {
-  padding-bottom: 2.5rem;
-}
-
-td:first-child {
-  font-weight: 600;
-  text-align: right;
-  width: 25%;
-}
-
-.fas.fa-info-circle {
-  cursor: pointer;
-} */
 </style>

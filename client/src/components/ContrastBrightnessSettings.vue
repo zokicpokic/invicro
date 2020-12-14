@@ -11,7 +11,7 @@
       </v-card-title>
       <v-slider min="0" max="100" v-model="sliderValue" thumb-label>
         <template v-slot:prepend>
-           <v-icon @click="sliderValue--">mdi-minus</v-icon>
+          <v-icon @click="sliderValue--">mdi-minus</v-icon>
         </template>
         <template v-slot:append>
           <v-icon @click="sliderValue++">mdi-plus</v-icon>
