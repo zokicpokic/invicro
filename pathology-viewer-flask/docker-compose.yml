@@ -1,0 +1,11 @@
+version: '3.2'
+services:
+  server:
+    working_dir: /home
+    image: invicrollc/pathology-viewer:server-latest
+    restart: on-failure
+    volumes:
+      - ../data:/data
+    ports:
+      - "5000:5000"
+    tty: True
