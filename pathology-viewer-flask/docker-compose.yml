@@ -9,3 +9,7 @@ services:
     ports:
       - "5000:5000"
     tty: True
+  token:
+    image: token-service:latest
+    ports:
+      - "5001:5001"
