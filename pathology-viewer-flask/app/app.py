@@ -1,11 +1,14 @@
 import os, io, logging, json
-from flask import Flask, request, send_file, send_from_directory
+from flask import Flask, request, send_file, send_from_directory, make_response
 from flask_cors import CORS, cross_origin
+import requests
 import cv2, cppyy
 import numpy as np
 
-app = Flask(__name__)
+TOKEN_SERVICE = 'http://localhost:5001/'
+excluded_endpoints = ["/api/region"]
 
+app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
@@ -49,6 +52,31 @@ def send_css(path):
 
 ######################
 
+# token validation middlevare
+
+@app.before_request
+def check_token():
+    for ex in excluded_endpoints:
+        if request.path.startswith(ex):
+            print('Excluded endpoint')
+            return;
+
+    if request.method == 'OPTIONS':
+        print('OPTIONS')
+        return
+
+    token = request.args.get('token')
+    if token == None:
+        token = ''
+
+    response = requests.get(TOKEN_SERVICE + '/validate/' + token)
+    if response.status_code >= 400:
+        print('token invalid')
+        return make_response(response.text, response.status_code)
+
+
+######################
+
 def get_dir_items(path):
     d = {"name": os.path.basename(path)}
     d["id"] = path
@@ -63,16 +91,16 @@ def get_dir_items(path):
 @cross_origin()
 def get_all(directory):
     directory = os.path.join(DATA_PATH, directory)
-    
+
     print("directory: " + directory)
-    
+
     files = [os.path.relpath(os.path.join(directory, f), DATA_PATH) for f in os.listdir(directory) if f.lower().endswith(".svs")]
-    
+
     return json.loads(json.dumps(
         {
             "data": json.dumps(files)
         }))
-        
+
 @app.route("/api/all/", methods=['GET'])
 @cross_origin()
 def dir_tree():
@@ -91,20 +119,20 @@ def thumbnail(filename):
 
     width = alloc_memory_dim(info)
     height = alloc_memory_dim(info)
-    
+
     status = get_thumbnail_dimensions(width, height, info, fname)
-    if status == 0:     
+    if status == 0:
         data = alloc_memory_v2(info, width, height)
         info = cppyy.gbl.std.string('')
-               
+
         status = load_thumbnail(data, info, fname)
         if status == 0:
             w = get_value(width)
             h = get_value(height)
-        
+
             img = np.frombuffer(data, dtype=np.uint8, count=4*w*h).copy()
             img = np.reshape(img, (h, w, 4))
-    
+
             status = free_memory(data)
             if status == 0:
                 logging.info('THUMBNAIL REQUEST: "{0}"'.format(request.url))
@@ -127,7 +155,7 @@ def thumbnail(filename):
     status = free_memory_dim(width)
     status = free_memory_dim(height)
     return str(info)
-    
+
 
 @app.route("/api/region/<path:filename>/<int:level>/<int:x>/<int:y>/", methods=['GET'])
 @cross_origin()
