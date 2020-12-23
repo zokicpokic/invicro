@@ -9,8 +9,11 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-TOKEN_DURATION = 10 * 60; # token duration in seconds (10 minutes)
+TOKEN_DURATION = os.getenv('TOKEN_DURATION')
+if TOKEN_DURATION == None:
+    TOKEN_DURATION = 10 * 60; # token duration in seconds (10 minutes)
 
+print('TOKEN_DURATION ' + TOKEN_DURATION)
 
 @app.route("/") 
 def index():

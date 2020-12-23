@@ -18,12 +18,14 @@ RUN pip3 install -r /app/requirements.txt
 # Copy required files to container
 COPY app /app
 
-# Setup environement 
+# Setup environement
+# set TOKEN_DURATION in seconds
 WORKDIR /app
 ENV LC_ALL=C.UTF-8 \
     LANG=C.UTF-8 \
     FLASK_APP=/app/app.py \
     FLASK_ENV=development \
+    TOKEN_DURATION=600 \
     FLASK_RUN_PORT=5001
 
 # Start flask
