@@ -32,6 +32,7 @@ const INTENSITY = 0.0;
 
 const state = {
     fetching: false,
+    reloadProject: false,
     activeProjectId: undefined,
     activeStudyId: undefined,
     activeSerieId: undefined,
@@ -51,11 +52,13 @@ const state = {
     red: RED,
     green: GREEN,
     blue: BLUE,
-    intensity: INTENSITY
+    intensity: INTENSITY,
+    token: ''
 };
 
 const getters = {
     fetching: state => state.fetching,
+    reloadProject: state => state.reloadProject,
     activeProjectId: state => state.activeProjectId,
     activeStudyId: state => state.activeStudyId,
     activeSerieId: state => state.activeSerieId,
@@ -78,7 +81,8 @@ const getters = {
     red: state => state.red,
     green: state => state.green,
     blue: state => state.blue,
-    intensity: state => state.intensity
+    intensity: state => state.intensity,
+    token: state => state.token
 };
 
 const mutations = {
@@ -87,7 +91,8 @@ const mutations = {
         state.activeStudyId = studyId;
         state.activeSerieId = serieId;
         state.recordedStack = [];
-        state.currentRecordedIndex = -1
+        state.currentRecordedIndex = -1;
+        state.reloadProject = !state.reloadProject;
     },
     [m.PROJECTS_FETCHING](state) {
         state.fetching = true;
@@ -424,7 +429,11 @@ const mutations = {
         } else if (color === "intensity") {
             state.intensity = INTENSITY;
         }
-    }};
+    },
+    [m.SET_TOKEN](state, token) {
+        state.token = token;
+    }
+};
 
 const actions = {
     [a.PROJECTS_FETCH_ANNOTATION]: async ({state, commit}) => {
@@ -492,6 +501,19 @@ const actions = {
                 console.log(err);
                 throw err;
             });
+    },
+    [a.CREATE_TOKEN]: async ({commit}) => {
+        console.log(backend.token);
+        return backend.token
+        .post()
+        .then(res => {
+            commit(m.SET_TOKEN, res);
+            return res;
+        })
+        .catch(err => {
+            console.log(err);
+            throw err;
+        })
     }
 };
 

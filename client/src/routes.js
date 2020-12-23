@@ -1,13 +1,7 @@
-/*
-* Copyright (c) 2020-. Authors: see NOTICE file.
-*/
-
 import VueRouter from 'vue-router';
-
-// Import Components
+import ErrorView from './components/ErrorView.vue';
 import GlobalDashboard from './components/GlobalDashboard.vue';
-//import PathologyImgHome from './components/PathologyImgHome.vue'
-// Define routes
+
 const routes = [
     {
         name: 'main',
@@ -15,13 +9,18 @@ const routes = [
         component: GlobalDashboard
     },
     {
-        name: 'file',
-        path: '/:projectId/:studyId/:serieId',
-        component: GlobalDashboard // Alternative: component: require("./components/GlobalDashboard.vue").default
+        name: 'error',
+        path: '/error',
+        props: true,
+        component: ErrorView
     }
+    // {
+    //     name: 'file',
+    //     path: '/:projectId/:studyId/:serieId',
+    //     component: GlobalDashboard
+    // }
 ];
 
-// Create router instance
 const router = new VueRouter({
     routes: routes,
     linkActiveClass: 'is-active'

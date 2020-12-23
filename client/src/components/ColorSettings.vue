@@ -122,7 +122,7 @@ export default {
   width: 48px !important;
   height: 48px !important;
   padding: 0 12px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  color: rgba(0, 0, 0, 0.87) !important;
+  /* border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: rgba(0, 0, 0, 0.87) !important; */
 }
 </style>

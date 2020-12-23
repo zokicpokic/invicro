@@ -62,11 +62,12 @@ export default {
             "red",
             "green",
             "blue",
-            "intensity"
+            "intensity",
+            "reloadProject"
         ])
     },
     watch: {
-        $route: function () {
+        reloadProject: function () {
             console.log("Route changed");
             this.loadProject();
         },
@@ -175,8 +176,8 @@ export default {
     },
     methods: {
         getWindowHeight: function () {
-            // body height minus menu and toolbar
-            this.mapHeight = document.documentElement.clientHeight - 48 - 48;
+            // body height minus menu height
+            this.mapHeight = document.documentElement.clientHeight - 48;
         },
         check: function (e) {
             var layer = this.dataMap?.getLayers().array_[1];
@@ -338,15 +339,9 @@ export default {
         },
         loadProject: async function () {
             console.log("loadProject");
-            const projectId = this.$route.params.projectId;
-            const studyId = this.$route.params.studyId;
-            const serieId = this.$route.params.serieId;
-
-            this.$store.commit(m.PROJECTS_SET_ACTIVE, {
-                projectId: projectId,
-                studyId: studyId,
-                serieId: serieId,
-            });
+            const projectId = this.activeProjectId;
+            const studyId = this.activeStudyId;
+            const serieId = this.activeSerieId;
 
             if (this.dataMap) {
                 this.dataMap.removeLayer(this.baseLayer);

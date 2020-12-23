@@ -11,11 +11,21 @@
 </template>
 
 <script>
+import * as a from "./store/action_types";
+
 export default {
     name: "App",
     components: {},
     data: () => ({
-    })
+    }),
+    mounted: function () {
+        this.$store.dispatch(a.CREATE_TOKEN)
+            .then(() => {})
+            .catch((e) => {
+                console.log("error creating test token");
+                console.log(e);
+            });
+    }
 };
 </script>
 
