@@ -11,5 +11,8 @@ services:
     tty: True
   token:
     image: token-service:latest
+    restart: on-failure
+    environment:
+      TOKEN_DURATION: 600
     ports:
       - "5001:5001"
