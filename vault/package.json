@@ -1,0 +1,23 @@
+{
+  "name": "@invicro/vault",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.invicrodev.com:ipacs-development/vault.git"
+  },
+  "version": "0.0.1",
+  "description": "Vault container for development",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Antony Donovan",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.16.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1"
+  }
+}

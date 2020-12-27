@@ -2,17 +2,42 @@ version: '3.2'
 services:
   server:
     working_dir: /home
-    image: invicrollc/pathology-viewer:server-latest
+    image: pathology-server:latest # image: invicrollc/pathology-viewer:server-latest
     restart: on-failure
     volumes:
       - ../data:/data
     ports:
       - "5000:5000"
+    environment:
+      - TOKEN_SERVICE=http://token:5001/
+    networks:
+      - internal
     tty: True
   token:
     image: token-service:latest
     restart: on-failure
     environment:
-      TOKEN_DURATION: 600
+      - VAULT_API_ADDR=http://vault:8200/
+      - TOKEN_DURATION:600
+    networks:
+      - internal
     ports:
       - "5001:5001"
+  vault:
+    image: vault
+    command: server
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ../vault/volumes/logs:/vault/logs
+      - ../vault/volumes/file:/vault/file
+      - ../vault/volumes/config:/vault/config
+    environment:
+      - VAULT_API_ADDR=http://vault:8200
+    ports:
+      - 8200:8200
+    networks:
+      - internal
+
+networks:
+    internal:

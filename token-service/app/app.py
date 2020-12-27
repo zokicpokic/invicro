@@ -17,12 +17,12 @@ else:
     TOKEN_DURATION = int(TOKEN_DURATION)
 
 
-VAULT_API_ADDR = os.getenv('VAULT_API_ADDR');
-if VAULT_API_ADDR == None:
-    VAULT_API_ADDR = 'http://localhost:8200/';
+VAULT_ADDR = os.getenv('VAULT_API_ADDR');
+if VAULT_ADDR == None:
+    VAULT_ADDR = 'http://localhost:8200/';
 
 print('TOKEN_DURATION ' + str(TOKEN_DURATION))
-
+print('VAULT_API_ADDR ' + VAULT_ADDR);
 @app.route("/") 
 def index():
     return "Token service.<br>GET /validate<br>POST /create"
@@ -38,7 +38,7 @@ def validate():
 
         token_decoded = base64.b64decode(token)
 
-        vaultEncryptUrl = VAULT_API_ADDR + 'v1/pathology/decrypt/viewer';
+        vaultEncryptUrl = VAULT_ADDR + 'v1/pathology/decrypt/viewer';
         resp = requests.post(vaultEncryptUrl,
                              data= {'ciphertext':token_decoded.decode('ascii')},
                              headers = {
@@ -88,7 +88,7 @@ def create():
     data_bytes = dataJson.encode('ascii');
     data_base64 = base64.b64encode(data_bytes);
     print(data_base64);
-    vaultEncryptUrl = VAULT_API_ADDR + 'v1/pathology/encrypt/viewer';
+    vaultEncryptUrl = VAULT_ADDR + 'v1/pathology/encrypt/viewer';
     print(vaultEncryptUrl);
 
     resp = requests.post(vaultEncryptUrl,
@@ -97,9 +97,11 @@ def create():
                       'X-Vault-Token': auth_token
                   })
 
+    print('vault resp');
     print(resp.status_code);
 
     if resp.status_code == 200:
+        print('ok');
         response_json = json.loads(resp.text);
         cipher = response_json["data"]["ciphertext"];
         print(cipher);
@@ -112,6 +114,7 @@ def create():
                 "token": token_base64.decode('ascii')
             }))
     else:
+        print('not ok');
         return make_response(resp.text, resp.status_code);
 
 # Set log configuration
