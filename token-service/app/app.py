@@ -16,6 +16,7 @@ if TOKEN_DURATION == None:
 else:
     TOKEN_DURATION = int(TOKEN_DURATION)
 
+print('TOKEN_DURATION ' + TOKEN_DURATION)
 
 VAULT_ADDR = os.getenv('VAULT_API_ADDR');
 if VAULT_ADDR == None:
