@@ -5,7 +5,13 @@ import requests
 import cv2, cppyy
 import numpy as np
 
-TOKEN_SERVICE = 'http://localhost:5001/'
+TOKEN_SERVICE= os.getenv('TOKEN_SERVICE');
+if TOKEN_SERVICE == None:
+    TOKEN_SERVICE = 'http://localhost:5001/';
+
+print('TOKEN_SERVICE:');
+print(TOKEN_SERVICE);
+
 excluded_endpoints = ["/api/region"]
 
 app = Flask(__name__)
@@ -69,7 +75,16 @@ def check_token():
     if token == None:
         token = ''
 
-    response = requests.get(TOKEN_SERVICE + '/validate/' + token)
+    auth_token = request.args.get('auth_token')
+    if auth_token == None:
+        auth_token = ''
+
+    validateUrl = TOKEN_SERVICE + 'validate?token=' + token + '&auth_token=' + auth_token;
+    print('validate url');
+    print(validateUrl);
+    response = requests.get(validateUrl)
+    print(response.status_code);
+    print(response.text);
     if response.status_code >= 400:
         print('token invalid')
         return make_response(response.text, response.status_code)

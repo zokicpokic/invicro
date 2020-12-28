@@ -1,0 +1,15 @@
+version: '2.3'
+services:
+  vault:
+    image: vault
+    command: server
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./volumes/logs:/vault/logs
+      - ./volumes/file:/vault/file
+      - ./volumes/config:/vault/config
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+    ports:
+      - 8200:8200

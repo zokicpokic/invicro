@@ -9,3 +9,4 @@ dev_run:
 		--name tokenService\
 		--net=host\
 		token-service:latest
+
