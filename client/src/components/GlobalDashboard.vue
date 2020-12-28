@@ -22,12 +22,11 @@
           </v-btn>
           <p>{{ activeClassName }}</p>
           <!--<v-switch label="Display MLD File" color="primary" value="red" hide-details></v-switch>-->
-          <v-spacer></v-spacer>
-        </v-toolbar>
+          <!-- <v-spacer></v-spacer> -->
+          <v-divider class="mx-4" vertical></v-divider>
 
-        <v-toolbar dense flat :dark="false">
           <v-toolbar-title></v-toolbar-title>
-          <v-btn-toggle v-model="selectedGeometry" mandatory>
+          <v-btn-toggle v-model="selectedGeometry" mandatory borderless>
             <v-btn v-for="item in geometries" :key="item.name">
               <v-icon>{{ item.icon }}</v-icon>
             </v-btn>
@@ -239,14 +238,6 @@ export default {
 </script>
 
 <style>
-.toolbar-btn {
-  min-width: 48px !important;
-  width: 48px !important;
-  height: 48px !important;
-  padding: 0 12px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  color: rgba(0, 0, 0, 0.87) !important;
-}
 .v-navigation-drawer__border {
   display: none !important;
 }

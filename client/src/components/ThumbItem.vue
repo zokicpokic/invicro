@@ -1,15 +1,14 @@
 <template>
-  <v-card flat hover class="thumb-card pa-0 my-2" :class="{'thumb-card-selected' : isSelected}">
-    <router-link :to="{ name: 'file', params: {projectId, studyId, serieId}}">
-      <v-img contain :src="img"></v-img>
-      <div class="link-text mt-2" :class="{'link-text-selected' : isSelected}">{{serieId}}</div>
-    </router-link>
+  <v-card flat hover class="thumb-card pa-0 my-2" :class="{'thumb-card-selected' : isSelected}" @click="setProject">
+    <v-img contain :src="img"></v-img>
+    <div class="link-text mt-2" :class="{'link-text-selected' : isSelected}">{{serieId}}</div>
   </v-card>
 </template>
 
 <script>
 import image from '@/assets/default_media_image.png';
 import {backend} from "../backend/index";
+import * as m from "../store/mutation_types";
 
 export default {
     name: "ThumbItem",
@@ -42,6 +41,15 @@ export default {
             return this.$route.params.projectId === this.projectId &&
                 this.$route.params.studyId === this.studyId &&
                 this.$route.params.serieId === this.serieId;
+        }
+    },
+    methods: {
+        setProject: function () {
+            this.$store.commit(m.PROJECTS_SET_ACTIVE, {
+                projectId: this.projectId,
+                studyId: this.studyId,
+                serieId: this.serieId,
+            });
         }
     },
     mounted: function () {
