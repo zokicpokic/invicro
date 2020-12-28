@@ -501,19 +501,6 @@ const actions = {
                 console.log(err);
                 throw err;
             });
-    },
-    [a.CREATE_TOKEN]: async ({commit}) => {
-        console.log(backend.token);
-        return backend.token
-        .post()
-        .then(res => {
-            commit(m.SET_TOKEN, res);
-            return res;
-        })
-        .catch(err => {
-            console.log(err);
-            throw err;
-        })
     }
 };
 

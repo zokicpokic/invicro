@@ -11,20 +11,16 @@
 </template>
 
 <script>
-import * as a from "./store/action_types";
+import * as m from "./store/mutation_types";
 
 export default {
     name: "App",
     components: {},
     data: () => ({
     }),
-    mounted: function () {
-        this.$store.dispatch(a.CREATE_TOKEN)
-            .then(() => {})
-            .catch((e) => {
-                console.log("error creating test token");
-                console.log(e);
-            });
+    created: function () {
+        let token = this.$route.query.token;
+        this.$store.commit(m.SET_TOKEN, token);
     }
 };
 </script>

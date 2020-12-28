@@ -63,7 +63,8 @@ export default {
             "green",
             "blue",
             "intensity",
-            "reloadProject"
+            "reloadProject",
+            "token"
         ])
     },
     watch: {
@@ -360,7 +361,9 @@ export default {
                         projectId + '/' +
                         studyId + '/' +
                         serieId +
-                        '.svs/{z}/{x}/{y}',
+                        '.svs/{z}/{x}/{y}' +
+                        '?token=' +
+                        this.token,
                     crossOrigin: '*',
                     wrapX: false
                 })

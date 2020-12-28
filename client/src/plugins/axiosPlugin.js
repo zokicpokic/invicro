@@ -1,6 +1,6 @@
 import axios from 'axios';
 import store from '../store/modules/projects';
-// import router from '../routes';
+import router from '../routes';
 
 const AxiosPlugin = {};
 
@@ -8,8 +8,6 @@ const AxiosPlugin = {};
 AxiosPlugin.install = () => {
     // const store = options.store;
     // let token = options.store.getters.token;
-
-    //const token = "MTYwODY3NDk0NC42NjUzMzk3";
 
     axios.interceptors.request.use(config => {
         // Send cookie in request
@@ -29,8 +27,8 @@ AxiosPlugin.install = () => {
     axios.interceptors.response.use(response => {
         return response;
     }, error => {
-        // let errCode = error.response.status + ' ' + error.response.statusText;
-        // router.push({ name: 'error', params: { errorCode: errCode, errorMsg: error.response.data } });
+        let errCode = error.response.status + ' ' + error.response.statusText;
+        router.push({ name: 'error', params: { errorCode: errCode, errorMsg: error.response.data } });
         return Promise.reject(error);
     });
 };
