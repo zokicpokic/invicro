@@ -213,7 +213,7 @@ export default {
     },
     async created() {
         let Settings;
-        await axios.get('configuration.json').then(response => (Settings = response.data));
+        await axios.get('static/configuration.json').then(response => (Settings = response.data));
         console.log(Settings);
 
         for (var i in constants) {

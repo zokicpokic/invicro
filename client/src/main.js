@@ -14,9 +14,9 @@ Vue.config.productionTip = false
 
 const getRuntimeConfig = async () => {
     //dev
-    const runtimeConfig = await fetch('configuration.json');
+    //const runtimeConfig = await fetch('configuration.json');
     //prod
-    //const runtimeConfig = await fetch('static/configuration.json');
+    const runtimeConfig = await fetch('static/configuration.json');
     return await runtimeConfig.json()
 }
 

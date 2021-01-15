@@ -12,7 +12,7 @@ if TOKEN_SERVICE == None:
 print('TOKEN_SERVICE:');
 print(TOKEN_SERVICE);
 
-excluded_endpoints = ["/api/region"]
+excluded_endpoints = ["/api/region", "/css/", "/js/", "/static/", "/invicro.ico", "/favicon.ico", "/configuration.json"]
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -62,6 +62,7 @@ def send_css(path):
 
 @app.before_request
 def check_token():
+    print("AAAAAA" + request.path);
     for ex in excluded_endpoints:
         if request.path.startswith(ex):
             print('Excluded endpoint')

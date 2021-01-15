@@ -16,6 +16,9 @@ AxiosPlugin.install = () => {
         console.log('intercept request');
         console.log(token);
         config.params = {...config.params, token}
+
+        let auth_token = store.state.auth_token;
+        config.params = {...config.params, auth_token}
         console.log(config.params);
         return config;
     }, error => {

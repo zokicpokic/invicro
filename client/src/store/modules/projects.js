@@ -53,7 +53,8 @@ const state = {
     green: GREEN,
     blue: BLUE,
     intensity: INTENSITY,
-    token: ''
+    token: '',
+    auth_token: ''
 };
 
 const getters = {
@@ -82,7 +83,8 @@ const getters = {
     green: state => state.green,
     blue: state => state.blue,
     intensity: state => state.intensity,
-    token: state => state.token
+    token: state => state.token,
+    auth_token: state => state.auth_token
 };
 
 const mutations = {
@@ -432,7 +434,10 @@ const mutations = {
     },
     [m.SET_TOKEN](state, token) {
         state.token = token;
-    }
+    },
+    [m.SET_AUTH_TOKEN](state, token) {
+        state.auth_token = token;
+    },
 };
 
 const actions = {

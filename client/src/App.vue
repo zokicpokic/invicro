@@ -20,7 +20,9 @@ export default {
     }),
     created: function () {
         let token = this.$route.query.token;
+        let auth_token = this.$route.query.auth_token;
         this.$store.commit(m.SET_TOKEN, token);
+        this.$store.commit(m.SET_AUTH_TOKEN, auth_token);
     }
 };
 </script>
